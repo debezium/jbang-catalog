@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: quay.io/debezium/postgres:16
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=debezium
+      - POSTGRES_PASSWORD=dbz
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
