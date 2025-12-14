@@ -2,10 +2,10 @@
     "templates": {
         "capturing:postgres":{
             "file-refs": {
-                "{filename}": "capturing/templates/postgres/capturing.java.qute",
-                "docker-compose.yaml": "capturing/templates/postgres/docker-compose.yaml",
-                "init.sql": "capturing/templates/postgres/init.sql",
-                "application.properties": "capturing/templates/postgres/application.properties"
+                "{filename}": "/templates/capturing/postgres/capturing.java.qute",
+                "docker-compose.yaml": "/templates/capturing/postgres/docker-compose.yaml",
+                "init.sql": "/templates/capturing/postgres/init.sql",
+                "application.properties": "/templates/capturing/application.properties"
             },
             "description": "Debezium Capturing boilerplate for Postgres"
         }
