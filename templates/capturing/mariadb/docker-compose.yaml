@@ -1,0 +1,11 @@
+services:
+  mariadb:
+    image: quay.io/debezium/example-mariadb:3.3
+    ports:
+     - 3306:3306
+    environment:
+      - MARIADB_ROOT_PASSWORD=debezium
+      - MARIADB_USER=mariadbuser
+      - MARIADB_PASSWORD=mariadbpw
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
