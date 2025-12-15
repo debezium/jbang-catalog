@@ -1,0 +1,20 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    ports:
+     - 1433:1433
+    environment:
+     - ACCEPT_EULA=Y
+     - MSSQL_PID=Standard
+     - SA_PASSWORD=Password!
+     - MSSQL_AGENT_ENABLED=true
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+  mssql-tools:
+    image: mcr.microsoft.com/mssql-tools:latest
+    restart: no
+    command: "/opt/mssql-tools/bin/sqlcmd -S mssql -l 60 -U sa -P Password! -i /tmp/mssql-init.sql"
+    depends_on:
+      - mssql
+    volumes:
+      - ./init.sql:/tmp/mssql-init.sql
