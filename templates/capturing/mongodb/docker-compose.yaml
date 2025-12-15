@@ -1,0 +1,13 @@
+services:
+  mongodb:
+    image: quay.io/debezium/mongo:6.0
+    hostname: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=debezium
+      - MONGO_INITDB_ROOT_PASSWORD=dbz
+      - MONGO_INITDB_DATABASE=inventory
+      - HOSTNAME=127.0.0.1
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
