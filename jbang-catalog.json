@@ -26,6 +26,15 @@
                 "application.properties": "templates/capturing/mariadb/application.properties"
             },
             "description": "Debezium Capturing boilerplate for mariadb"
+        },
+        "capturing:mongodb":{
+            "file-refs": {
+                "{filename}": "templates/capturing/mongodb/capturing.java.qute",
+                "docker-compose.yaml": "templates/capturing/mongodb/docker-compose.yaml",
+                "init.sql": "templates/capturing/mongodb/init-scripts/init.js",
+                "application.properties": "templates/capturing/mongodb/application.properties"
+            },
+            "description": "Debezium Capturing boilerplate for mongodb"
         }
     }
 }
