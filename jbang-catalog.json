@@ -35,6 +35,15 @@
                 "application.properties": "templates/capturing/mongodb/application.properties"
             },
             "description": "Debezium Capturing boilerplate for mongodb"
+        },
+        "capturing:sqlserver":{
+            "file-refs": {
+                "{filename}": "templates/capturing/sqlserver/capturing.java.qute",
+                "docker-compose.yaml": "templates/capturing/sqlserver/docker-compose.yaml",
+                "init.sql": "templates/capturing/sqlserver/init.sql",
+                "application.properties": "templates/capturing/sqlserver/application.properties"
+            },
+            "description": "Debezium Capturing boilerplate for Microsoft Sql Server"
         }
     }
 }
