@@ -8,6 +8,15 @@
                 "application.properties": "templates/capturing/postgres/application.properties"
             },
             "description": "Debezium Capturing boilerplate for Postgres"
+        },
+        "capturing:mysql":{
+            "file-refs": {
+                "{filename}": "templates/capturing/mysql/capturing.java.qute",
+                "docker-compose.yaml": "templates/capturing/mysql/docker-compose.yaml",
+                "init.sql": "templates/capturing/mysql/init.sql",
+                "application.properties": "templates/capturing/mysql/application.properties"
+            },
+            "description": "Debezium Capturing boilerplate for MySql"
         }
     }
 }

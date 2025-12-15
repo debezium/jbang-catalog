@@ -1,0 +1,32 @@
+//usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS io.quarkus.platform:quarkus-bom:3.28.4@pom
+//DEPS io.quarkus:quarkus-arc
+//DEPS io.debezium.quarkus:quarkus-debezium-mysql:3.4.0.CR1
+//FILES application.properties
+//JAVAC_OPTIONS -parameters
+//JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+
+
+import org.apache.kafka.connect.source.SourceRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.debezium.engine.RecordChangeEvent;
+import io.debezium.runtime.Capturing;
+import io.quarkus.runtime.Quarkus;
+import jakarta.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
+public class {baseName} {
+
+    private final Logger logger = LoggerFactory.getLogger({baseName}.class);
+
+    public static void main(String[] args) {
+        Quarkus.run();
+    }
+
+    @Capturing()
+    public void capture(CapturingEvent<SourceRecord> event) throws Exception {
+        logger.info("capturing event {}", event.record());
+    }
+}

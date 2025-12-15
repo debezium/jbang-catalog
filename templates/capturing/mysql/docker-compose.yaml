@@ -1,0 +1,7 @@
+services:
+  mysql:
+    image: quay.io/debezium/example-mysql:3.4
+    ports:
+     - 3306:3306
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
