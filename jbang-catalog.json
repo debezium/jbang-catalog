@@ -7,7 +7,7 @@
                 "init.sql": "templates/capturing/postgres/init.sql",
                 "application.properties": "templates/capturing/postgres/application.properties"
             },
-            "description": "Debezium Capturing boilerplate for Postgres"
+            "description": "Debezium Capturing boilerplate for PostgreSQL"
         },
         "capturing:mysql":{
             "file-refs": {
@@ -25,7 +25,7 @@
                 "init.sql": "templates/capturing/mariadb/init.sql",
                 "application.properties": "templates/capturing/mariadb/application.properties"
             },
-            "description": "Debezium Capturing boilerplate for mariadb"
+            "description": "Debezium Capturing boilerplate for MariaDB"
         },
         "capturing:mongodb":{
             "file-refs": {
@@ -34,7 +34,7 @@
                 "init.sql": "templates/capturing/mongodb/init-scripts/init.js",
                 "application.properties": "templates/capturing/mongodb/application.properties"
             },
-            "description": "Debezium Capturing boilerplate for mongodb"
+            "description": "Debezium Capturing boilerplate for MongoDB"
         },
         "capturing:sqlserver":{
             "file-refs": {
