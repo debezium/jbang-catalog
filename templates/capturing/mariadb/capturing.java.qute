@@ -21,10 +21,6 @@ public class {baseName} {
 
     private final Logger logger = LoggerFactory.getLogger({baseName}.class);
 
-    public static void main(String[] args) {
-        Quarkus.run();
-    }
-
     @Capturing()
     public void capture(CapturingEvent<SourceRecord> event) throws Exception {
         logger.info("capturing event {}", event.record());
