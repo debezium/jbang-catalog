@@ -8,21 +8,18 @@
 
 
 import org.apache.kafka.connect.source.SourceRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.debezium.runtime.CapturingEvent;
 import io.debezium.runtime.Capturing;
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class {baseName} {
 
-    private final Logger logger = LoggerFactory.getLogger({baseName}.class);
-
     @Capturing()
     public void capture(CapturingEvent<SourceRecord> event) throws Exception {
-        logger.info("capturing event {}", event.record());
+        Log.infof("capturing event %s", event.record());
     }
 }
