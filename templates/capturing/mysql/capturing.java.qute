@@ -1,7 +1,7 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS io.quarkus.platform:quarkus-bom:3.28.4@pom
 //DEPS io.quarkus:quarkus-arc
-//DEPS io.debezium.quarkus:quarkus-debezium-mysql:3.4.0.CR1
+//DEPS io.debezium.quarkus:debezium-quarkus-mysql:3.5.0.Final
 //FILES application.properties
 //JAVAC_OPTIONS -parameters
 //JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
