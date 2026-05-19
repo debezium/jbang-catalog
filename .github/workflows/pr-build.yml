@@ -1,0 +1,79 @@
+name: pr-build.yml
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-dependencies:
+    name: "Build Debezium Core"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Debezium Jbang Catalog repository
+        uses: actions/checkout@v6
+        with:
+          path: jbang-catalog
+      - name: Check if pull request branch exists in debezium main repository
+        id: branch
+        env:
+          branch_name: ${{ github.head_ref }}
+        run: |
+          curl --silent -X "GET" https://api.github.com/repos/debezium/debezium/pulls | jq '.[] | {branch: .head.ref}' | jq -r '.branch' >> SORTED_PULLS.txt
+
+          while IFS=" " read -r BRANCH;
+          do
+            if grep -q "$branch_name" <<< "$BRANCH"; then
+              echo "BRANCH_FOUND=true" >> $GITHUB_OUTPUT
+            fi
+          done < SORTED_PULLS.txt
+      - name: Checkout core repository with pull request branch
+        if: ${{ steps.branch.outputs.BRANCH_FOUND == 'true' }}
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.event.pull_request.user.login }}/debezium
+          ref: ${{ github.head_ref }}
+          path: core
+      - name: Checkout core repository with default base branch
+        if: ${{ steps.branch.outputs.BRANCH_FOUND != 'true' }}
+        uses: actions/checkout@v6
+        with:
+          repository: debezium/debezium
+          ref: ${{ github.base_ref }}
+          path: core
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: 21
+      - uses: debezium/debezium/.github/actions/maven-cache@main
+        with:
+          key: debezium-jbang-PR-build-${{ hashFiles('jbang-catalog/**/pom.xml') }}
+      - name: Maven build core
+        run: ./jbang-catalog/mvnw clean install -f core/pom.xml -DskipTests -DskipITs -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+
+  # Checks that all commits contain sign-offs
+  check-signed-commits:
+    name: Check signed commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: debezium/dbz/.github/actions/check-dco@main
+  check_style:
+    name: "Checkstyle and Formatting"
+    needs: [ check-signed-commits, build-dependencies ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Action
+        uses: actions/checkout@v6
+      - uses: debezium/debezium/.github/actions/checkstyle-format@main
+        with:
+          maven-cache-key: debezium-jbang-PR-build-${{ hashFiles('**/pom.xml') }}
+  build-debezium-jbang-cli:
+    name: "Debezium JBang CLI"
+    needs: [ check_style, check-signed-commits, build-dependencies ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Action
+        uses: actions/checkout@v6
+      - uses: ./.github/actions/build-debezium-jbang-cli
+        with:
+          maven-cache-key: debezium-jbang-PR-build-${{ hashFiles('**/pom.xml') }}
