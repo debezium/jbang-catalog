@@ -1,49 +1,57 @@
 {
-    "templates": {
-        "capturing:postgres":{
-            "file-refs": {
-                "{filename}": "templates/capturing/postgres/capturing.java.qute",
-                "docker-compose.yaml": "templates/capturing/postgres/docker-compose.yaml",
-                "init.sql": "templates/capturing/postgres/init.sql",
-                "application.properties": "templates/capturing/postgres/application.properties"
-            },
-            "description": "Debezium Capturing boilerplate for PostgreSQL"
-        },
-        "capturing:mysql":{
-            "file-refs": {
-                "{filename}": "templates/capturing/mysql/capturing.java.qute",
-                "docker-compose.yaml": "templates/capturing/mysql/docker-compose.yaml",
-                "init.sql": "templates/capturing/mysql/init.sql",
-                "application.properties": "templates/capturing/mysql/application.properties"
-            },
-            "description": "Debezium Capturing boilerplate for MySql"
-        },
-        "capturing:mariadb":{
-            "file-refs": {
-                "{filename}": "templates/capturing/mariadb/capturing.java.qute",
-                "docker-compose.yaml": "templates/capturing/mariadb/docker-compose.yaml",
-                "init.sql": "templates/capturing/mariadb/init.sql",
-                "application.properties": "templates/capturing/mariadb/application.properties"
-            },
-            "description": "Debezium Capturing boilerplate for MariaDB"
-        },
-        "capturing:mongodb":{
-            "file-refs": {
-                "{filename}": "templates/capturing/mongodb/capturing.java.qute",
-                "docker-compose.yaml": "templates/capturing/mongodb/docker-compose.yaml",
-                "init.sql": "templates/capturing/mongodb/init-scripts/init.js",
-                "application.properties": "templates/capturing/mongodb/application.properties"
-            },
-            "description": "Debezium Capturing boilerplate for MongoDB"
-        },
-        "capturing:sqlserver":{
-            "file-refs": {
-                "{filename}": "templates/capturing/sqlserver/capturing.java.qute",
-                "docker-compose.yaml": "templates/capturing/sqlserver/docker-compose.yaml",
-                "init.sql": "templates/capturing/sqlserver/init.sql",
-                "application.properties": "templates/capturing/sqlserver/application.properties"
-            },
-            "description": "Debezium Capturing boilerplate for Microsoft Sql Server"
-        }
+  "aliases": {
+    "debezium": {
+      "script-ref": "debezium-jbang/debezium-jbang-main/dist/DebeziumJBang.java",
+      "properties": {
+        "debezium.jbang.version": "3.6.0-SNAPSHOT"
+      }
     }
+  },
+  "templates": {
+    "capturing:postgres": {
+      "file-refs": {
+        "{filename}": "templates/capturing/postgres/capturing.java.qute",
+        "docker-compose.yaml": "templates/capturing/postgres/docker-compose.yaml",
+        "init.sql": "templates/capturing/postgres/init.sql",
+        "application.properties": "templates/capturing/postgres/application.properties"
+      },
+      "description": "Debezium Capturing boilerplate for PostgreSQL"
+    },
+    "capturing:mysql": {
+      "file-refs": {
+        "{filename}": "templates/capturing/mysql/capturing.java.qute",
+        "docker-compose.yaml": "templates/capturing/mysql/docker-compose.yaml",
+        "init.sql": "templates/capturing/mysql/init.sql",
+        "application.properties": "templates/capturing/mysql/application.properties"
+      },
+      "description": "Debezium Capturing boilerplate for MySql"
+    },
+    "capturing:mariadb": {
+      "file-refs": {
+        "{filename}": "templates/capturing/mariadb/capturing.java.qute",
+        "docker-compose.yaml": "templates/capturing/mariadb/docker-compose.yaml",
+        "init.sql": "templates/capturing/mariadb/init.sql",
+        "application.properties": "templates/capturing/mariadb/application.properties"
+      },
+      "description": "Debezium Capturing boilerplate for MariaDB"
+    },
+    "capturing:mongodb": {
+      "file-refs": {
+        "{filename}": "templates/capturing/mongodb/capturing.java.qute",
+        "docker-compose.yaml": "templates/capturing/mongodb/docker-compose.yaml",
+        "init.sql": "templates/capturing/mongodb/init-scripts/init.js",
+        "application.properties": "templates/capturing/mongodb/application.properties"
+      },
+      "description": "Debezium Capturing boilerplate for MongoDB"
+    },
+    "capturing:sqlserver": {
+      "file-refs": {
+        "{filename}": "templates/capturing/sqlserver/capturing.java.qute",
+        "docker-compose.yaml": "templates/capturing/sqlserver/docker-compose.yaml",
+        "init.sql": "templates/capturing/sqlserver/init.sql",
+        "application.properties": "templates/capturing/sqlserver/application.properties"
+      },
+      "description": "Debezium Capturing boilerplate for Microsoft Sql Server"
+    }
+  }
 }
