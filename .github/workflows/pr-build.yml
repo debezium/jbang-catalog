@@ -1,11 +1,12 @@
-name: pr-build.yml
+name: Debezium JBang
 on:
   pull_request:
     branches:
       - main
 
 env:
-  MAVEN_FULL_BUILD_PROJECTS: ":debezium-jbang-core, :debezium-jbang-main, :debezium-jbang-testing, :debezium-jbang-catalog"
+  MAVEN_FULL_BUILD_PROJECTS: ":debezium-jbang-core,:debezium-jbang-main,:debezium-jbang-testing,:debezium-jbang-catalog"
+  DEBEZIUM_CORE_DEPENDENCIES: ":debezium-build-parent,:debezium-bom"
 
 
 jobs:
@@ -52,8 +53,8 @@ jobs:
       - uses: debezium/debezium/.github/actions/maven-cache@main
         with:
           key: debezium-jbang-PR-build-${{ hashFiles('jbang-catalog/**/pom.xml') }}
-      - name: Maven build core
-        run: ./jbang-catalog/mvnw clean install -f core/pom.xml -DskipTests -DskipITs -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+      - name: Maven build core dependencies
+        run: ./jbang-catalog/mvnw -ntp clean install -f core/pom.xml -pl ${{ env.DEBEZIUM_CORE_DEPENDENCIES }} -DskipTests -DskipITs -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
 
   # Checks that all commits contain sign-offs
   check-signed-commits:

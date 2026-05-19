@@ -1,0 +1,43 @@
+name: Debezium JBang CI
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DEBEZIUM_CORE_DEPENDENCIES: ":debezium-build-parent,:debezium-bom"
+
+jobs:
+  build-dependencies:
+    name: "Build Debezium Core"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Debezium Jbang Catalog repository
+        uses: actions/checkout@v6
+        with:
+          path: jbang-catalog
+      - name: Checkout core repository with default base branch
+        uses: actions/checkout@v6
+        with:
+          repository: debezium/debezium
+          path: core
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: 21
+      - uses: debezium/debezium/.github/actions/maven-cache@main
+        with:
+          key: debezium-jbang-CI-build-${{ hashFiles('jbang-catalog/**/pom.xml') }}
+      - name: Maven build core
+        run: ./jbang-catalog/mvnw -ntp clean install -f core/pom.xml -pl ${{ env.DEBEZIUM_CORE_DEPENDENCIES }} -DskipTests -DskipITs -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+  build-debezium-jbang-cli:
+    name: "Debezium JBang CLI"
+    needs: [ build-dependencies ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Action
+        uses: actions/checkout@v6
+      - uses: ./.github/actions/build-debezium-jbang-cli
+        with:
+          maven-cache-key: debezium-jbang-CI-build-${{ hashFiles('**/pom.xml') }}
