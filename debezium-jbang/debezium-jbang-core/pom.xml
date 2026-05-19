@@ -34,11 +34,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.debezium</groupId>
-            <artifactId>debezium-testing-testcontainers</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>io.debezium.jbang</groupId>
             <artifactId>debezium-jbang-testing</artifactId>
         </dependency>

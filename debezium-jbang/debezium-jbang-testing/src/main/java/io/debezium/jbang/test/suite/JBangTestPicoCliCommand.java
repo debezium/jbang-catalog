@@ -5,8 +5,9 @@
  */
 package io.debezium.jbang.test.suite;
 
-import io.debezium.jbang.test.util.CliLocalJBangInstance;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import io.debezium.jbang.test.util.CliLocalJBangInstance;
 
 public class JBangTestPicoCliCommand {
 

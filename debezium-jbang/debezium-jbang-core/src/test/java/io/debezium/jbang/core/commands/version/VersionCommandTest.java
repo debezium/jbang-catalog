@@ -5,10 +5,11 @@
  */
 package io.debezium.jbang.core.commands.version;
 
-import io.debezium.jbang.test.suite.JBangTestPicoCliCommand;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import io.debezium.jbang.test.suite.JBangTestPicoCliCommand;
 
 class VersionCommandTest extends JBangTestPicoCliCommand {
 
