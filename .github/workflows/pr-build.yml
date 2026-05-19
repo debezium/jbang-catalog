@@ -4,6 +4,10 @@ on:
     branches:
       - main
 
+env:
+  MAVEN_FULL_BUILD_PROJECTS: ":debezium-jbang-core, :debezium-jbang-main, :debezium-jbang-testing, :debezium-jbang-catalog"
+
+
 jobs:
   build-dependencies:
     name: "Build Debezium Core"
