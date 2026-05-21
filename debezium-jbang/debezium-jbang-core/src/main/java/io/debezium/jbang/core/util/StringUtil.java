@@ -5,7 +5,7 @@
  */
 package io.debezium.jbang.core.util;
 
-public class StringHelper {
+public class StringUtil {
 
     public static String after(String text, String after) {
         if (text == null) {

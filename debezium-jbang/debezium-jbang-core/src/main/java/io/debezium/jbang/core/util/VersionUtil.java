@@ -3,7 +3,9 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.jbang.core.common;
+package io.debezium.jbang.core.util;
+
+import io.debezium.jbang.core.common.CommandLineHelper;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -19,7 +21,7 @@ public class VersionUtil {
     private VersionUtil() {
     }
 
-    public static String getJBangVersion() {
+    public static synchronized String getJBangVersion() {
         if (jbangVersion != null) {
             return jbangVersion;
         }

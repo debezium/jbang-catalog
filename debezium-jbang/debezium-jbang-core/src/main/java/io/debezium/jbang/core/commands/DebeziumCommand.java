@@ -8,7 +8,7 @@ package io.debezium.jbang.core.commands;
 import java.util.concurrent.Callable;
 
 import io.debezium.jbang.core.common.Printer;
-import io.debezium.jbang.core.util.StringHelper;
+import io.debezium.jbang.core.util.StringUtil;
 
 import picocli.CommandLine;
 
@@ -65,7 +65,7 @@ public abstract class DebeziumCommand implements Callable<Integer>, Printer {
                 if (defaultValue != null &&
                         argSpec instanceof CommandLine.Model.OptionSpec optionSpec) {
                     for (String name : optionSpec.names()) {
-                        String placeholder = "#" + StringHelper.after(name, "--");
+                        String placeholder = "#" + StringUtil.after(name, "--");
                         Object v = argSpec.getValue();
                         if (v != null &&
                                 v.toString().contains(placeholder)) {

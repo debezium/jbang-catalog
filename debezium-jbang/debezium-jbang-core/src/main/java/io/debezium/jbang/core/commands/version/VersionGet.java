@@ -7,7 +7,7 @@ package io.debezium.jbang.core.commands.version;
 
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.DebeziumJBangMain;
-import io.debezium.jbang.core.common.VersionUtil;
+import io.debezium.jbang.core.util.VersionUtil;
 
 import picocli.CommandLine;
 
