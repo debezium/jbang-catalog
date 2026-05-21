@@ -6,6 +6,7 @@
 package io.debezium.jbang.test.util;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -57,6 +58,7 @@ public class CliLocalJBangInstance implements BeforeAllCallback, AfterAllCallbac
             String sdkmanBin = Path.of(System.getProperty("user.home"), ".sdkman", "candidates", "jbang", "current", "bin").toString();
             String currentPath = pb.environment().getOrDefault("PATH", "");
             String separator = IS_WINDOWS ? ";" : ":";
+
             pb.environment().put("PATH", jbangBin + separator + sdkmanBin + separator + currentPath);
 
             Process process = pb.start();
@@ -120,7 +122,7 @@ public class CliLocalJBangInstance implements BeforeAllCallback, AfterAllCallbac
         }
     }
 
-    public String getJbangVersion() {
+    public String getJBangVersion() {
         return jbangVersion;
     }
 

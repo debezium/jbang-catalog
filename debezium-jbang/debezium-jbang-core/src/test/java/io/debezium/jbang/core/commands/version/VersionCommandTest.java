@@ -20,7 +20,7 @@ class VersionCommandTest extends JBangTestPicoCliCommand {
                 .containsIgnoringNewLines("""
                         JBang version: %s
                         Debezium Core version: %s
-                        """.formatted(instance().getJbangVersion(),
-                        instance().getJbangVersion()));
+                        """.formatted(instance().getJBangVersion(),
+                        instance().getJBangVersion()));
     }
 }
