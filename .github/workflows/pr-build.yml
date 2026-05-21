@@ -6,7 +6,7 @@ on:
 
 env:
   MAVEN_FULL_BUILD_PROJECTS: ":debezium-jbang-core,:debezium-jbang-main,:debezium-jbang-testing,:debezium-jbang-catalog"
-  DEBEZIUM_CORE_DEPENDENCIES: ":debezium-build-parent,:debezium-bom"
+  DEBEZIUM_CORE_DEPENDENCIES: ":debezium-build-parent,:debezium-bom,:debezium-parent,support/checkstyle,support/ide-configs,support/revapi"
 
 
 jobs:

@@ -5,7 +5,7 @@ on:
       - main
 
 env:
-  DEBEZIUM_CORE_DEPENDENCIES: ":debezium-build-parent,:debezium-bom"
+  DEBEZIUM_CORE_DEPENDENCIES: ":debezium-build-parent,:debezium-bom,:debezium-parent,support/checkstyle,support/ide-configs,support/revapi"
 
 jobs:
   build-dependencies:
