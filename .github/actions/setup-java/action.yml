@@ -5,11 +5,11 @@ inputs:
   distribution:
     description: "The Java distribution to use"
     required: false
-    default: "graalvm"
+    default: "temurin"
   java-version:
     description: "The java version to install"
     required: false
-    default: 21
+    default: 25
 
 runs:
   using: "composite"

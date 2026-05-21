@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: 21
+          java-version: 25
       - uses: debezium/debezium/.github/actions/maven-cache@main
         with:
           key: debezium-jbang-CI-build-${{ hashFiles('jbang-catalog/**/pom.xml') }}
