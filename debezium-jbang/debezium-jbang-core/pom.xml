@@ -36,6 +36,7 @@
         <dependency>
             <groupId>io.debezium.jbang</groupId>
             <artifactId>debezium-jbang-testing</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
