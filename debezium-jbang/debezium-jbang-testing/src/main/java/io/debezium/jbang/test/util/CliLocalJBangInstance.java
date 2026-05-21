@@ -57,9 +57,8 @@ public class CliLocalJBangInstance implements BeforeAllCallback, AfterAllCallbac
             String jbangBin = Path.of(System.getProperty("user.home"), ".jbang", "bin").toString();
             String sdkmanBin = Path.of(System.getProperty("user.home"), ".sdkman", "candidates", "jbang", "current", "bin").toString();
             String currentPath = pb.environment().getOrDefault("PATH", "");
-            String separator = IS_WINDOWS ? ";" : ":";
 
-            pb.environment().put("PATH", jbangBin + separator + sdkmanBin + separator + currentPath);
+            pb.environment().put("PATH", jbangBin + File.pathSeparator + sdkmanBin + File.pathSeparator + currentPath);
 
             Process process = pb.start();
 
