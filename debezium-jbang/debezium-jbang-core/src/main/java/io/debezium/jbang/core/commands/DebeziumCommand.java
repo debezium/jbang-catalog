@@ -12,7 +12,7 @@ import io.debezium.jbang.core.util.StringHelper;
 
 import picocli.CommandLine;
 
-public abstract class DebeziumCommand implements Callable<Integer> {
+public abstract class DebeziumCommand implements Callable<Integer>, Printer {
 
     private final DebeziumJBangMain main;
 
@@ -31,8 +31,24 @@ public abstract class DebeziumCommand implements Callable<Integer> {
         return doCall();
     }
 
-    protected Printer printer() {
-        return getMain().getOut();
+    @Override
+    public void println() {
+        getMain().getOut().println();
+    }
+
+    @Override
+    public void println(String line) {
+        getMain().getOut().println(line);
+    }
+
+    @Override
+    public void print(String output) {
+        getMain().getOut().print(output);
+    }
+
+    @Override
+    public void printf(String format, Object... args) {
+        getMain().getOut().printf(format, args);
     }
 
     public DebeziumJBangMain getMain() {
