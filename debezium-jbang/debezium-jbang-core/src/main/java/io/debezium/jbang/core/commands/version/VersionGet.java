@@ -7,7 +7,7 @@ package io.debezium.jbang.core.commands.version;
 
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.DebeziumJBangMain;
-import io.debezium.jbang.core.util.VersionUtil;
+import io.debezium.jbang.core.util.Version;
 
 import picocli.CommandLine;
 
@@ -20,17 +20,14 @@ public class VersionGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() {
+        Version version = Version.getVersion();
 
-        String jbangVersion = VersionUtil.getJBangVersion();
-
-        if (jbangVersion != null) {
-            println("JBang version: " + jbangVersion);
+        if (version.jbang() != null) {
+            println("JBang version: " + version.jbang());
         }
 
-        String coreVersion = VersionUtil.getCoreVersion();
-
-        if (coreVersion != null) {
-            println("Debezium Core version: " + jbangVersion);
+        if (version.getCore() != null) {
+            println("Debezium Core version: " + version.getCore());
         }
 
         return 0;
