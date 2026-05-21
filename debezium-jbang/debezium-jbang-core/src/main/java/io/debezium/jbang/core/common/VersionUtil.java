@@ -11,12 +11,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-public class VersionHelper {
+public class VersionUtil {
 
     private static volatile String coreVersion;
     private static volatile String jbangVersion;
 
-    private VersionHelper() {
+    private VersionUtil() {
     }
 
     public static String getJBangVersion() {
@@ -50,33 +50,20 @@ public class VersionHelper {
         if (coreVersion != null) {
             return coreVersion;
         }
-        // First, try to load from maven properties
-        InputStream is = null;
-        try {
-            Properties p = new Properties();
-            is = VersionHelper.class.getResourceAsStream("/META-INF/maven/io.debezium/debezium-core/pom.properties");
+
+        try(InputStream is = VersionUtil.class.getResourceAsStream("/META-INF/maven/io.debezium/debezium-core/pom.properties")) {
+            Properties properties = new Properties();
             if (is != null) {
-                p.load(is);
-                coreVersion = p.getProperty("version", "");
+                properties.load(is);
+                coreVersion = properties.getProperty("version", "");
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // ignore
-        }
-        finally {
-            if (is != null) {
-                try {
-                    is.close();
-                }
-                catch (Exception e) {
-                    // ignore
-                }
-            }
         }
 
         // Fallback to using Java API
         if (coreVersion == null) {
-            Package aPackage = VersionHelper.class.getPackage();
+            Package aPackage = VersionUtil.class.getPackage();
             if (aPackage != null) {
                 coreVersion = aPackage.getImplementationVersion();
                 if (coreVersion == null) {
