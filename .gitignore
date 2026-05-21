@@ -67,11 +67,3 @@ local.properties
 
 ### VS Code ###
 .vscode/
-
-### Operating System specific files ###
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
