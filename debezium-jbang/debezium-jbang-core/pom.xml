@@ -60,6 +60,9 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <systemPropertyVariables>
+                        <project.version>${project.version}</project.version>
+                    </systemPropertyVariables>
                     <skipTests>${skipITs}</skipTests>
                     <enableAssertions>true</enableAssertions>
                     <runOrder>alphabetical</runOrder>

@@ -23,4 +23,4 @@ runs:
     - name: Build Debezium JBang CLI
       shell: ${{ inputs.shell }}
       run: >
-        ./mvnw install -B -pl :debezium-jbang -DskipITs=false
+        ./mvnw install -B -pl :debezium-jbang -am -amd -DskipITs=false

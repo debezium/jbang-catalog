@@ -5,22 +5,26 @@
  */
 package io.debezium.jbang.core.commands.version;
 
+import java.io.IOException;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.debezium.jbang.test.suite.JBangTestPicoCliCommand;
 
-class VersionCommandTest extends JBangTestPicoCliCommand {
+class VersionCommandIT extends JBangTestPicoCliCommand {
 
     @Test
     @DisplayName("should return the version for debezium CLI")
-    void shouldReturnTheCorrectVersion() {
+    void shouldReturnTheCorrectVersion() throws IOException {
+        String version = System.getProperty("project.version");
+
         Assertions.assertThat(execute("version").trim())
                 .containsIgnoringNewLines("""
                         JBang version: %s
                         Debezium Core version: %s
                         """.formatted(instance().getJBangVersion(),
-                        instance().getJBangVersion()));
+                        version));
     }
 }
