@@ -17,7 +17,7 @@ public abstract class DebeziumCommand implements Callable<Integer>, Printer {
     private final DebeziumJBangMain main;
 
     @CommandLine.Spec
-    CommandLine.Model.CommandSpec spec;
+    protected CommandLine.Model.CommandSpec spec;
 
     public DebeziumCommand(DebeziumJBangMain main) {
         this.main = main;

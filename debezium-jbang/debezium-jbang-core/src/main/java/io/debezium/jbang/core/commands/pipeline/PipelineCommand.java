@@ -13,16 +13,13 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "pipeline", description = "Manage Debezium Platform pipelines (use pipeline --help to see subcommands)", mixinStandardHelpOptions = true, sortOptions = false)
 public class PipelineCommand extends DebeziumCommand {
 
-    @CommandLine.Spec
-    CommandLine.Model.CommandSpec spec;
-
     public PipelineCommand(DebeziumJBangMain main) {
         super(main);
     }
 
     @Override
     public Integer doCall() throws Exception {
-        spec.commandLine().usage(System.out);
+        spec.commandLine().execute("--help");
         return 0;
     }
 }
