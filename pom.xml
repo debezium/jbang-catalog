@@ -16,7 +16,7 @@
 
     <properties>
         <picocli.version>4.7.7</picocli.version>
-        <mockserver.version>5.15.0</mockserver.version>
+        <quarkus-version>3.33.1.1</quarkus-version>
     </properties>
 
     <dependencyManagement>
@@ -25,6 +25,13 @@
                 <groupId>io.debezium</groupId>
                 <artifactId>debezium-bom</artifactId>
                 <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus.platform</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus-version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

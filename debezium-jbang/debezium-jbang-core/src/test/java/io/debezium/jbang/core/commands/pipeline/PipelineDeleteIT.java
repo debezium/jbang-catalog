@@ -6,23 +6,30 @@
 package io.debezium.jbang.core.commands.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class PipelineDeleteIT extends AbstractPipelineIT {
 
+    @TempDir
+    Path tempDir;
+
     @Test
     @DisplayName("should delete pipeline by id and confirm")
-    void shouldDeletePipeline() {
-        mockServer
-                .when(request().withMethod("DELETE").withPath("/pipelines/2"))
-                .respond(response().withStatusCode(204));
+    void shouldDeletePipeline() throws IOException {
+        Path yaml = tempDir.resolve("pipeline.yaml");
+        Files.writeString(yaml, pipelineYaml("delete-test-pipeline"));
+        String createOutput = executePipeline("create -f " + yaml.toAbsolutePath());
+        String id = createOutput.replace("Pipeline created with id:", "").trim();
 
-        String output = executePipeline("delete 2");
+        String output = executePipeline("delete " + id);
 
-        assertThat(output.trim()).isEqualTo("Pipeline 2 deleted.");
+        assertThat(output.trim()).isEqualTo("Pipeline " + id + " deleted.");
     }
 }

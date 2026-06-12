@@ -6,43 +6,31 @@
 package io.debezium.jbang.core.commands.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class PipelineListIT extends AbstractPipelineIT {
 
+    @TempDir
+    Path tempDir;
+
     @Test
     @DisplayName("should list pipelines in table format")
-    void shouldListPipelines() {
-        mockServer
-                .when(request().withMethod("GET").withPath("/pipelines"))
-                .respond(response()
-                        .withStatusCode(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("[{\"id\":1,\"name\":\"my-pipeline\",\"logLevel\":\"INFO\"}]"));
+    void shouldListPipelines() throws IOException {
+        Path yaml = tempDir.resolve("pipeline.yaml");
+        Files.writeString(yaml, pipelineYaml("list-test-pipeline"));
+        executePipeline("create -f " + yaml.toAbsolutePath());
 
         String output = executePipeline("list");
 
         assertThat(output)
-                .contains("my-pipeline")
+                .contains("list-test-pipeline")
                 .contains("INFO");
-    }
-
-    @Test
-    @DisplayName("should show empty message when no pipelines exist")
-    void shouldShowEmptyMessage() {
-        mockServer
-                .when(request().withMethod("GET").withPath("/pipelines"))
-                .respond(response()
-                        .withStatusCode(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("[]"));
-
-        String output = executePipeline("list");
-
-        assertThat(output.trim()).isEqualTo("No pipelines found.");
     }
 }

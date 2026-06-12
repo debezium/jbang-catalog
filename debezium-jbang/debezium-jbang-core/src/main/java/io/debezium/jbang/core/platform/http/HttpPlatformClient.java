@@ -5,15 +5,15 @@
  */
 package io.debezium.jbang.core.platform.http;
 
-import java.net.ConnectException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.List;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
+
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 import io.debezium.jbang.core.platform.PlatformClient;
 import io.debezium.jbang.core.platform.dto.PipelineRequest;
@@ -21,118 +21,47 @@ import io.debezium.jbang.core.platform.dto.PipelineResponse;
 
 public class HttpPlatformClient implements PlatformClient {
 
-    private final URI baseUri;
-    private final HttpClient httpClient;
-    private final ObjectMapper objectMapper;
-
-    public HttpPlatformClient(String apiUrl, HttpClient httpClient, ObjectMapper objectMapper) {
-        this.baseUri = URI.create(apiUrl);
-        this.httpClient = httpClient;
-        this.objectMapper = objectMapper;
-    }
+    private final Client client;
+    private final String baseUrl;
 
     public HttpPlatformClient(String apiUrl) {
-        this(apiUrl, HttpClient.newHttpClient(), new ObjectMapper());
+        this.client = ClientBuilder.newClient().register(JacksonJsonProvider.class);
+        this.baseUrl = apiUrl;
     }
 
     @Override
-    public List<PipelineResponse> listPipelines() throws Exception {
-        try {
-            var request = HttpRequest.newBuilder()
-                    .uri(baseUri.resolve("/pipelines"))
-                    .header("Accept", "application/json")
-                    .GET()
-                    .build();
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            checkStatus(response);
-            return objectMapper.readValue(response.body(), new TypeReference<List<PipelineResponse>>() {
-            });
-        }
-        catch (ConnectException e) {
-            throw connectionError();
-        }
+    public List<PipelineResponse> listPipelines() {
+        return client.target(baseUrl).path("/api/pipelines")
+                .request(MediaType.APPLICATION_JSON)
+                .get(new GenericType<List<PipelineResponse>>() {
+                });
     }
 
     @Override
-    public PipelineResponse getPipeline(Long id) throws Exception {
-        try {
-            var request = HttpRequest.newBuilder()
-                    .uri(baseUri.resolve("/pipelines/" + id))
-                    .header("Accept", "application/json")
-                    .GET()
-                    .build();
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            checkStatus(response);
-            return objectMapper.readValue(response.body(), PipelineResponse.class);
-        }
-        catch (ConnectException e) {
-            throw connectionError();
-        }
+    public PipelineResponse getPipeline(Long id) {
+        return client.target(baseUrl).path("/api/pipelines").path(String.valueOf(id))
+                .request(MediaType.APPLICATION_JSON)
+                .get(PipelineResponse.class);
     }
 
     @Override
-    public PipelineResponse createPipeline(PipelineRequest pipelineRequest) throws Exception {
-        try {
-            var body = objectMapper.writeValueAsString(pipelineRequest);
-            var request = HttpRequest.newBuilder()
-                    .uri(baseUri.resolve("/pipelines"))
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(body))
-                    .build();
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            checkStatus(response);
-            return objectMapper.readValue(response.body(), PipelineResponse.class);
-        }
-        catch (ConnectException e) {
-            throw connectionError();
-        }
+    public PipelineResponse createPipeline(PipelineRequest request) {
+        return client.target(baseUrl).path("/api/pipelines")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.json(request), PipelineResponse.class);
     }
 
     @Override
-    public PipelineResponse updatePipeline(Long id, PipelineRequest pipelineRequest) throws Exception {
-        try {
-            var body = objectMapper.writeValueAsString(pipelineRequest);
-            var request = HttpRequest.newBuilder()
-                    .uri(baseUri.resolve("/pipelines/" + id))
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .PUT(HttpRequest.BodyPublishers.ofString(body))
-                    .build();
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            checkStatus(response);
-            return objectMapper.readValue(response.body(), PipelineResponse.class);
-        }
-        catch (ConnectException e) {
-            throw connectionError();
-        }
+    public PipelineResponse updatePipeline(Long id, PipelineRequest request) {
+        return client.target(baseUrl).path("/api/pipelines").path(String.valueOf(id))
+                .request(MediaType.APPLICATION_JSON)
+                .put(Entity.json(request), PipelineResponse.class);
     }
 
     @Override
-    public void deletePipeline(Long id) throws Exception {
-        try {
-            var request = HttpRequest.newBuilder()
-                    .uri(baseUri.resolve("/pipelines/" + id))
-                    .DELETE()
-                    .build();
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            checkStatus(response);
-        }
-        catch (ConnectException e) {
-            throw connectionError();
-        }
-    }
-
-    private void checkStatus(HttpResponse<String> response) {
-        int status = response.statusCode();
-        if (status >= 400) {
-            throw new RuntimeException("Platform API error [HTTP " + status + "]: " + response.body());
-        }
-    }
-
-    private RuntimeException connectionError() {
-        return new RuntimeException(
-                "Cannot connect to Debezium Platform at " + baseUri
-                        + ". Is the Platform running? Use --api-url to specify a different URL.");
+    public void deletePipeline(Long id) {
+        client.target(baseUrl).path("/api/pipelines").path(String.valueOf(id))
+                .request()
+                .delete();
     }
 }

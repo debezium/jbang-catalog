@@ -6,8 +6,6 @@
 package io.debezium.jbang.core.commands.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,18 +23,15 @@ class PipelineUpdateIT extends AbstractPipelineIT {
     @Test
     @DisplayName("should update pipeline from YAML file and confirm")
     void shouldUpdatePipeline() throws IOException {
-        Path yaml = tempDir.resolve("pipeline.yaml");
-        Files.writeString(yaml, "name: updated-pipeline\nlogLevel: DEBUG\n");
+        Path createYaml = tempDir.resolve("create.yaml");
+        Files.writeString(createYaml, pipelineYaml("update-test-pipeline"));
+        String createOutput = executePipeline("create -f " + createYaml.toAbsolutePath());
+        String id = createOutput.replace("Pipeline created with id:", "").trim();
 
-        mockServer
-                .when(request().withMethod("PUT").withPath("/pipelines/3"))
-                .respond(response()
-                        .withStatusCode(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"id\":3,\"name\":\"updated-pipeline\",\"logLevel\":\"DEBUG\"}"));
+        Path updateYaml = tempDir.resolve("update.yaml");
+        Files.writeString(updateYaml, pipelineYaml("update-test-pipeline").replace("logLevel: INFO", "logLevel: DEBUG"));
+        String output = executePipeline("update " + id + " -f " + updateYaml.toAbsolutePath());
 
-        String output = executePipeline("update 3 -f " + yaml.toAbsolutePath());
-
-        assertThat(output.trim()).isEqualTo("Pipeline 3 updated.");
+        assertThat(output.trim()).isEqualTo("Pipeline " + id + " updated.");
     }
 }
