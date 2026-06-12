@@ -16,6 +16,7 @@
 
     <properties>
         <picocli.version>4.7.7</picocli.version>
+        <mockserver.version>5.15.0</mockserver.version>
     </properties>
 
     <dependencyManagement>

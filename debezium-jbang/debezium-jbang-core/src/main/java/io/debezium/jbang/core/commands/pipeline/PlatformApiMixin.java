@@ -11,13 +11,13 @@ import picocli.CommandLine;
 
 public class PlatformApiMixin {
 
-    @CommandLine.Option(names = { "--api-url" }, description = "Debezium Platform API URL (overrides ~/.dbz/config.yaml, default: "
+    @CommandLine.Option(names = { "--platform-address" }, description = "Debezium Platform API URL (overrides ~/.dbz/config.yaml, default: "
             + ConfigUtil.DEFAULT_PLATFORM_URL + ")", defaultValue = "${DEBEZIUM_PLATFORM_URL:-}")
-    private String apiUrl;
+    private String platformAddress;
 
     public String resolvedApiUrl() {
-        if (apiUrl != null && !apiUrl.isBlank()) {
-            return apiUrl;
+        if (platformAddress != null && !platformAddress.isBlank()) {
+            return platformAddress;
         }
         return ConfigUtil.getPlatformUrl();
     }

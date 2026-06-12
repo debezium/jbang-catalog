@@ -38,6 +38,6 @@ abstract class AbstractPipelineIT extends JBangTestPicoCliCommand {
     }
 
     protected String executePipeline(String subCommand) {
-        return execute("pipeline " + subCommand + " --api-url " + apiUrl());
+        return execute("pipeline " + subCommand + " --platform-address " + apiUrl());
     }
 }
