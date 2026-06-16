@@ -41,16 +41,14 @@ public class DebeziumJBangMain implements Callable<Integer> {
             // ignore
         }
 
-        var pipelineCmd = new CommandLine(new PipelineCommand(this))
-                .addSubcommand("list", new CommandLine(new PipelineList(this)))
-                .addSubcommand("get", new CommandLine(new PipelineGet(this)))
-                .addSubcommand("create", new CommandLine(new PipelineCreate(this)))
-                .addSubcommand("update", new CommandLine(new PipelineUpdate(this)))
-                .addSubcommand("delete", new CommandLine(new PipelineDelete(this)));
-
         commandLine = new CommandLine(this)
                 .addSubcommand("version", new CommandLine(new VersionCommand(this)))
-                .addSubcommand("pipeline", pipelineCmd);
+                .addSubcommand("pipeline", new CommandLine(new PipelineCommand(this))
+                        .addSubcommand("list", new CommandLine(new PipelineList(this)))
+                        .addSubcommand("get", new CommandLine(new PipelineGet(this)))
+                        .addSubcommand("create", new CommandLine(new PipelineCreate(this)))
+                        .addSubcommand("update", new CommandLine(new PipelineUpdate(this)))
+                        .addSubcommand("delete", new CommandLine(new PipelineDelete(this))));
 
         int exitCode = commandLine.execute(args);
         quit(exitCode);
