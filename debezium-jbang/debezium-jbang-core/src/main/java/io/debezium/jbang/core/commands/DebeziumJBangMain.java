@@ -50,11 +50,7 @@ public class DebeziumJBangMain implements Callable<Integer> {
 
         commandLine = new CommandLine(this)
                 .addSubcommand("version", new CommandLine(new VersionCommand(this)))
-                .addSubcommand("pipeline", pipelineCmd)
-                .setExecutionExceptionHandler((ex, cmd, parseResult) -> {
-                    cmd.getErr().println("ERROR: " + ex.getMessage());
-                    return 1;
-                });
+                .addSubcommand("pipeline", pipelineCmd);
 
         int exitCode = commandLine.execute(args);
         quit(exitCode);

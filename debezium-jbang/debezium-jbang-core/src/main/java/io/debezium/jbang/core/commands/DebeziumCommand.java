@@ -25,10 +25,14 @@ public abstract class DebeziumCommand implements Callable<Integer>, Printer {
 
     @Override
     public Integer call() throws Exception {
-
         replacePlaceholders();
-
-        return doCall();
+        try {
+            return doCall();
+        }
+        catch (Exception e) {
+            spec.commandLine().getErr().println("ERROR: " + e.getMessage());
+            return 1;
+        }
     }
 
     @Override
