@@ -15,12 +15,17 @@
     <packaging>pom</packaging>
 
     <properties>
-        <picocli.version>4.7.7</picocli.version>
         <quarkus-version>3.33.1.1</quarkus-version>
+        <version.jandex>3.5.3</version.jandex>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.smallrye</groupId>
+                <artifactId>jandex</artifactId>
+                <version>${version.jandex}</version>
+            </dependency>
             <dependency>
                 <groupId>io.debezium</groupId>
                 <artifactId>debezium-bom</artifactId>

@@ -20,7 +20,7 @@ class VersionCommandIT extends JBangTestPicoCliCommand {
     void shouldReturnTheCorrectVersion() throws IOException {
         String version = System.getProperty("project.version");
 
-        Assertions.assertThat(execute("version").trim())
+        Assertions.assertThat(execute("-V").trim())
                 .containsIgnoringNewLines("""
                         JBang version: %s
                         Debezium Core version: %s
