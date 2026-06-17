@@ -5,20 +5,24 @@
  */
 package io.debezium.jbang.core.commands.pipeline;
 
+import java.net.URI;
+
+import io.debezium.jbang.core.platform.pipeline.service.HttpPlatformService;
+import io.debezium.jbang.core.platform.pipeline.service.PlatformService;
 import io.debezium.jbang.core.util.ConfigUtil;
 
 import picocli.CommandLine;
 
-public class PlatformApiMixin {
+public class PlatformFactory {
 
     @CommandLine.Option(names = { "--platform-address" }, description = "Debezium Platform API URL (overrides ~/.dbz/config.yaml, default: "
             + ConfigUtil.DEFAULT_PLATFORM_URL + ")", defaultValue = "${DEBEZIUM_PLATFORM_URL:-}")
     private String platformAddress;
 
-    public String resolvedApiUrl() {
+    public PlatformService create() {
         if (platformAddress != null && !platformAddress.isBlank()) {
-            return platformAddress;
+            return new HttpPlatformService(URI.create(platformAddress));
         }
-        return ConfigUtil.getPlatformUrl();
+        return new HttpPlatformService(URI.create(ConfigUtil.getPlatformUrl()));
     }
 }
