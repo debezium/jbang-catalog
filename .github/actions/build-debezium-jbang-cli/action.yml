@@ -22,7 +22,11 @@ runs:
       shell: ${{ inputs.shell }}
       run: >
         ./mvnw clean install -DskipITs -DskipTests -B
-    - name: Build Debezium JBang CLI
+    - name: Build Debezium JBang CLI (native)
       shell: ${{ inputs.shell }}
       run: >
-        ./mvnw clean install -B -pl :debezium-jbang -am -amd -DskipITs=false
+        ./mvnw clean install -B -pl :debezium-jbang -am -amd -DskipITs=false -Pnative
+    - name: Build Debezium JBang CLI (JBang)
+      shell: ${{ inputs.shell }}
+      run: >
+        ./mvnw clean install -B -pl :debezium-jbang -am -amd -DskipJBs=false
