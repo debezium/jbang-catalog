@@ -5,8 +5,8 @@
  */
 package io.debezium.jbang.core.commands.pipeline;
 
-import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.DebeziumJBangMain;
+import io.debezium.jbang.core.commands.DebeziumCommand;
 
 import picocli.CommandLine;
 

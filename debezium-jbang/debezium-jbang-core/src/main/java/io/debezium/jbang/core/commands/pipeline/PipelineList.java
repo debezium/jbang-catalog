@@ -7,8 +7,8 @@ package io.debezium.jbang.core.commands.pipeline;
 
 import java.util.List;
 
-import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.DebeziumJBangMain;
+import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.platform.pipeline.Pipeline;
 import io.debezium.jbang.core.platform.pipeline.mapper.PipelineMapper;
 import io.debezium.jbang.core.platform.pipeline.service.PlatformService;

@@ -23,14 +23,12 @@
 
 package main;
 
-import io.debezium.jbang.core.commands.DebeziumJBangMain;
+import io.debezium.jbang.core.DebeziumJBangMain;
 import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
 
 /**
  * Main to run DebeziumJBang
  */
-@QuarkusMain
 public class DebeziumJBang {
 
     public static void main(String... args) {
