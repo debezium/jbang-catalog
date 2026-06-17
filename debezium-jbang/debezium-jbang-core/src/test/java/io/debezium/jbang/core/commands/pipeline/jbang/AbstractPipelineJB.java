@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.jbang.core.commands.pipeline;
+package io.debezium.jbang.core.commands.pipeline.jbang;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.jbang.test.suite.JBangTestPicoCliCommand;
 
-abstract class AbstractPipelineIT extends JBangTestPicoCliCommand {
+abstract class AbstractPipelineJB extends JBangTestPicoCliCommand {
 
     static final Network NETWORK = Network.newNetwork();
 
