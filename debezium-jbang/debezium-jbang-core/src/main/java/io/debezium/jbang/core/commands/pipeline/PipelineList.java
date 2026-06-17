@@ -9,9 +9,9 @@ import java.util.List;
 
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.DebeziumJBangMain;
-import io.debezium.jbang.core.platform.Pipeline;
-import io.debezium.jbang.core.platform.PipelineMapper;
-import io.debezium.jbang.core.platform.http.HttpPlatformClient;
+import io.debezium.jbang.core.platform.pipeline.Pipeline;
+import io.debezium.jbang.core.platform.pipeline.mapper.PipelineMapper;
+import io.debezium.jbang.core.platform.pipeline.service.PlatformService;
 
 import picocli.CommandLine;
 
@@ -19,16 +19,16 @@ import picocli.CommandLine;
 public class PipelineList extends DebeziumCommand {
 
     @CommandLine.Mixin
-    PlatformApiMixin platformOptions;
+    PlatformFactory platformFactory;
 
     public PipelineList(DebeziumJBangMain main) {
         super(main);
     }
 
     @Override
-    public Integer doCall() throws Exception {
-        var client = new HttpPlatformClient(platformOptions.resolvedApiUrl());
-        List<Pipeline> pipelines = PipelineMapper.toDomain(client.listPipelines());
+    public Integer doCall() {
+        PlatformService platformService = platformFactory.create();
+        List<Pipeline> pipelines = PipelineMapper.toDomain(platformService.listPipelines());
 
         if (pipelines.isEmpty()) {
             println("No pipelines found.");

@@ -7,9 +7,9 @@ package io.debezium.jbang.core.commands.pipeline;
 
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.DebeziumJBangMain;
-import io.debezium.jbang.core.platform.Pipeline;
-import io.debezium.jbang.core.platform.PipelineMapper;
-import io.debezium.jbang.core.platform.http.HttpPlatformClient;
+import io.debezium.jbang.core.platform.pipeline.Pipeline;
+import io.debezium.jbang.core.platform.pipeline.mapper.PipelineMapper;
+import io.debezium.jbang.core.platform.pipeline.service.PlatformService;
 
 import picocli.CommandLine;
 
@@ -20,7 +20,7 @@ public class PipelineGet extends DebeziumCommand {
     Long id;
 
     @CommandLine.Mixin
-    PlatformApiMixin platformOptions;
+    PlatformFactory platformFactory;
 
     public PipelineGet(DebeziumJBangMain main) {
         super(main);
@@ -28,8 +28,8 @@ public class PipelineGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        var client = new HttpPlatformClient(platformOptions.resolvedApiUrl());
-        Pipeline p = PipelineMapper.toDomain(client.getPipeline(id));
+        PlatformService platformService = platformFactory.create();
+        Pipeline p = PipelineMapper.toDomain(platformService.getPipeline(id));
 
         StringBuilder transforms = new StringBuilder();
         if (p.transforms() != null && !p.transforms().isEmpty()) {

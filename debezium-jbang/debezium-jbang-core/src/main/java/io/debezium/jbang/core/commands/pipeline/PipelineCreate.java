@@ -12,10 +12,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.DebeziumJBangMain;
-import io.debezium.jbang.core.platform.Pipeline;
-import io.debezium.jbang.core.platform.PipelineMapper;
-import io.debezium.jbang.core.platform.dto.PipelineRequest;
-import io.debezium.jbang.core.platform.http.HttpPlatformClient;
+import io.debezium.jbang.core.platform.pipeline.Pipeline;
+import io.debezium.jbang.core.platform.pipeline.dto.PipelineRequest;
+import io.debezium.jbang.core.platform.pipeline.mapper.PipelineMapper;
+import io.debezium.jbang.core.platform.pipeline.service.PlatformService;
 
 import picocli.CommandLine;
 
@@ -26,7 +26,7 @@ public class PipelineCreate extends DebeziumCommand {
     File file;
 
     @CommandLine.Mixin
-    PlatformApiMixin platformOptions;
+    PlatformFactory platformFactory;
 
     public PipelineCreate(DebeziumJBangMain main) {
         super(main);
@@ -37,8 +37,8 @@ public class PipelineCreate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         PipelineRequest request = yamlMapper.readValue(file, PipelineRequest.class);
 
-        var client = new HttpPlatformClient(platformOptions.resolvedApiUrl());
-        Pipeline created = PipelineMapper.toDomain(client.createPipeline(request));
+        PlatformService platformService = platformFactory.create();
+        Pipeline created = PipelineMapper.toDomain(platformService.createPipeline(request));
 
         println("Pipeline created with id: " + created.id());
         return 0;

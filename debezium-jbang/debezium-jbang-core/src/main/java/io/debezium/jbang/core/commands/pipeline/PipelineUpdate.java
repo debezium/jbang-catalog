@@ -12,10 +12,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.DebeziumJBangMain;
-import io.debezium.jbang.core.platform.Pipeline;
-import io.debezium.jbang.core.platform.PipelineMapper;
-import io.debezium.jbang.core.platform.dto.PipelineRequest;
-import io.debezium.jbang.core.platform.http.HttpPlatformClient;
+import io.debezium.jbang.core.platform.pipeline.Pipeline;
+import io.debezium.jbang.core.platform.pipeline.dto.PipelineRequest;
+import io.debezium.jbang.core.platform.pipeline.mapper.PipelineMapper;
+import io.debezium.jbang.core.platform.pipeline.service.PlatformService;
 
 import picocli.CommandLine;
 
@@ -29,7 +29,7 @@ public class PipelineUpdate extends DebeziumCommand {
     File file;
 
     @CommandLine.Mixin
-    PlatformApiMixin platformOptions;
+    PlatformFactory platformFactory;
 
     public PipelineUpdate(DebeziumJBangMain main) {
         super(main);
@@ -40,8 +40,8 @@ public class PipelineUpdate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         PipelineRequest request = yamlMapper.readValue(file, PipelineRequest.class);
 
-        var client = new HttpPlatformClient(platformOptions.resolvedApiUrl());
-        Pipeline updated = PipelineMapper.toDomain(client.updatePipeline(id, request));
+        PlatformService platformService = platformFactory.create();
+        Pipeline updated = PipelineMapper.toDomain(platformService.updatePipeline(id, request));
 
         println("Pipeline " + updated.id() + " updated.");
         return 0;
