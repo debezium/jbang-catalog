@@ -3,11 +3,12 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.jbang.core.platform;
+package io.debezium.jbang.core.platform.pipeline.mapper;
 
 import java.util.List;
 
-import io.debezium.jbang.core.platform.dto.PipelineResponse;
+import io.debezium.jbang.core.platform.pipeline.Pipeline;
+import io.debezium.jbang.core.platform.pipeline.dto.PipelineResponse;
 
 public class PipelineMapper {
 

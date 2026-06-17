@@ -12,7 +12,9 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import io.debezium.jbang.core.platform.dto.PipelineResponse;
+import io.debezium.jbang.core.platform.pipeline.Pipeline;
+import io.debezium.jbang.core.platform.pipeline.dto.PipelineResponse;
+import io.debezium.jbang.core.platform.pipeline.mapper.PipelineMapper;
 
 class PipelineMapperTest {
 
