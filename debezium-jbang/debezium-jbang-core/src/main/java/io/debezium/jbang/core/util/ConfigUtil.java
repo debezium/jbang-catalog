@@ -5,6 +5,9 @@
  */
 package io.debezium.jbang.core.util;
 
+import io.debezium.jbang.core.configuration.Configuration;
+import io.debezium.jbang.core.configuration.Platform;
+
 public class ConfigUtil {
 
     public static final String DEFAULT_PLATFORM_URL = "http://localhost:8080";
@@ -13,7 +16,7 @@ public class ConfigUtil {
     }
 
     public static String getPlatformUrl() {
-        LocalConfig config = LocalConfig.load();
+        Configuration config = Configuration.load();
         if (config.getPlatforms() != null) {
             return config.getPlatforms().stream()
                     .filter(Platform::isDefault)

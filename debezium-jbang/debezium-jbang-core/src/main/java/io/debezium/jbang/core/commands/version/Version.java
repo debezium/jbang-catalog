@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.jbang.core.util;
+package io.debezium.jbang.core.commands.version;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import io.debezium.jbang.core.common.CommandLineHelper;
+import io.debezium.jbang.core.util.CommandLineUtil;
 
 public class Version {
     public static final String POM_PATH = "/META-INF/maven/io.debezium/debezium-core/pom.properties";
@@ -62,7 +62,7 @@ public class Version {
         }
 
         try {
-            Path cachePath = Paths.get(CommandLineHelper.getHomeDir().toString())
+            Path cachePath = Paths.get(CommandLineUtil.getHomeDir().toString())
                     .resolve(JBANG_CACHE + JBANG_VERSION_FILE);
             String version = Files.readString(cachePath).trim();
             if (!version.isBlank()) {
