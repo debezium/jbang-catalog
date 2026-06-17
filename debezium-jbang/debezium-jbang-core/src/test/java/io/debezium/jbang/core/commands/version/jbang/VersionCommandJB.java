@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.jbang.core.commands.version;
+package io.debezium.jbang.core.commands.version.jbang;
 
 import java.io.IOException;
 
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import io.debezium.jbang.test.suite.JBangTestPicoCliCommand;
 
-class VersionCommandIT extends JBangTestPicoCliCommand {
+class VersionCommandJB extends JBangTestPicoCliCommand {
 
     @Test
     @DisplayName("should return the version for debezium CLI")
