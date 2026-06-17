@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.jbang.core.platform.http;
+package io.debezium.jbang.core.platform.pipeline.api;
 
 import java.util.List;
 
@@ -17,11 +17,11 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-import io.debezium.jbang.core.platform.dto.PipelineRequest;
-import io.debezium.jbang.core.platform.dto.PipelineResponse;
+import io.debezium.jbang.core.platform.pipeline.dto.PipelineRequest;
+import io.debezium.jbang.core.platform.pipeline.dto.PipelineResponse;
 
 @Path("/api/pipelines")
-public interface PipelineRestClient {
+public interface PipelineAPI {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
