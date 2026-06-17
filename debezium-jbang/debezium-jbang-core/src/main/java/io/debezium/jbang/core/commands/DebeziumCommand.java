@@ -7,6 +7,7 @@ package io.debezium.jbang.core.commands;
 
 import java.util.concurrent.Callable;
 
+import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.common.Printer;
 import io.debezium.jbang.core.util.StringUtil;
 
