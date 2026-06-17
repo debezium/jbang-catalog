@@ -8,8 +8,6 @@ package io.debezium.jbang.core.commands.version;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.debezium.jbang.core.util.Version;
-
 import picocli.CommandLine;
 
 public class DebeziumVersionProvider implements CommandLine.IVersionProvider {
