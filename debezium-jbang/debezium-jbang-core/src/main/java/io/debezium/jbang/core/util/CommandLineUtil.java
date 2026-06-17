@@ -3,14 +3,14 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.jbang.core.common;
+package io.debezium.jbang.core.util;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class CommandLineHelper {
+public class CommandLineUtil {
 
-    private CommandLineHelper() {
+    private CommandLineUtil() {
     }
 
     /**
