@@ -7,12 +7,16 @@ package io.debezium.jbang.core.commands;
 
 import java.net.URI;
 
+import io.debezium.jbang.core.platform.connection.service.ConnectionService;
+import io.debezium.jbang.core.platform.connection.service.HttpConnectionService;
 import io.debezium.jbang.core.platform.destination.service.DestinationService;
 import io.debezium.jbang.core.platform.destination.service.HttpDestinationService;
 import io.debezium.jbang.core.platform.pipeline.service.HttpPlatformService;
 import io.debezium.jbang.core.platform.pipeline.service.PlatformService;
 import io.debezium.jbang.core.platform.source.service.HttpSourceService;
 import io.debezium.jbang.core.platform.source.service.SourceService;
+import io.debezium.jbang.core.platform.transform.service.HttpTransformService;
+import io.debezium.jbang.core.platform.transform.service.TransformService;
 import io.debezium.jbang.core.util.ConfigUtil;
 
 import picocli.CommandLine;
@@ -33,6 +37,14 @@ public class PlatformFactory {
 
     public DestinationService destination() {
         return new HttpDestinationService(resolvedApiUrl());
+    }
+
+    public ConnectionService connection() {
+        return new HttpConnectionService(resolvedApiUrl());
+    }
+
+    public TransformService transform() {
+        return new HttpTransformService(resolvedApiUrl());
     }
 
     private URI resolvedApiUrl() {

@@ -1,0 +1,38 @@
+/*
+ * Copyright Debezium Authors.
+ *
+ * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
+ */
+package io.debezium.jbang.core.commands.transform.jbang;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+class TransformGetJB extends AbstractTransformJB {
+
+    @TempDir
+    Path tempDir;
+
+    @Test
+    @DisplayName("should display all transform details")
+    void shouldGetTransform() throws IOException {
+        Path yaml = tempDir.resolve("transform.yaml");
+        Files.writeString(yaml, transformYaml("get-test-transform"));
+        String createOutput = executeTransform("create -f " + yaml.toAbsolutePath());
+        String id = createOutput.replace("Transform created with id:", "").trim();
+
+        String output = executeTransform("get " + id);
+
+        assertThat(output)
+                .contains(id)
+                .contains("get-test-transform")
+                .contains("io.debezium.transforms.Filter");
+    }
+}
