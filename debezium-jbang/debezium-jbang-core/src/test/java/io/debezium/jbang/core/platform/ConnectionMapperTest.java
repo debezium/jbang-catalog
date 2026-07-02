@@ -7,6 +7,7 @@ package io.debezium.jbang.core.platform;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +21,9 @@ class ConnectionMapperTest {
 
     @Test
     void shouldMapFullResponse() {
-        ConnectionResponse response = new ConnectionResponse(
-                1L, "my-connection", "POSTGRESQL", Map.of("key", "value"));
+        Map<String, Object> config = new HashMap<>();
+        config.put("key", "value");
+        ConnectionResponse response = new ConnectionResponse(1L, "my-connection", "POSTGRESQL", config);
 
         Connection c = ConnectionMapper.toDomain(response);
 

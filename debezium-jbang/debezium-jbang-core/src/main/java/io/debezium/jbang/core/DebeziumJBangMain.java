@@ -9,6 +9,9 @@ import java.util.concurrent.Callable;
 
 import jakarta.inject.Inject;
 
+import io.debezium.jbang.core.commands.catalog.CatalogCommand;
+import io.debezium.jbang.core.commands.catalog.CatalogGet;
+import io.debezium.jbang.core.commands.catalog.CatalogList;
 import io.debezium.jbang.core.commands.connection.ConnectionCollections;
 import io.debezium.jbang.core.commands.connection.ConnectionCommand;
 import io.debezium.jbang.core.commands.connection.ConnectionCreate;
@@ -29,6 +32,7 @@ import io.debezium.jbang.core.commands.pipeline.PipelineCreate;
 import io.debezium.jbang.core.commands.pipeline.PipelineDelete;
 import io.debezium.jbang.core.commands.pipeline.PipelineGet;
 import io.debezium.jbang.core.commands.pipeline.PipelineList;
+import io.debezium.jbang.core.commands.pipeline.PipelineLogs;
 import io.debezium.jbang.core.commands.pipeline.PipelineUpdate;
 import io.debezium.jbang.core.commands.source.SourceCommand;
 import io.debezium.jbang.core.commands.source.SourceCreate;
@@ -75,7 +79,8 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
                         .addSubcommand("get", new CommandLine(new PipelineGet(this)))
                         .addSubcommand("create", new CommandLine(new PipelineCreate(this)))
                         .addSubcommand("update", new CommandLine(new PipelineUpdate(this)))
-                        .addSubcommand("delete", new CommandLine(new PipelineDelete(this))))
+                        .addSubcommand("delete", new CommandLine(new PipelineDelete(this)))
+                        .addSubcommand("logs", new CommandLine(new PipelineLogs(this))))
                 .addSubcommand("source", new CommandLine(new SourceCommand(this))
                         .addSubcommand("list", new CommandLine(new SourceList(this)))
                         .addSubcommand("get", new CommandLine(new SourceGet(this)))
@@ -102,7 +107,10 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
                         .addSubcommand("get", new CommandLine(new TransformGet(this)))
                         .addSubcommand("create", new CommandLine(new TransformCreate(this)))
                         .addSubcommand("update", new CommandLine(new TransformUpdate(this)))
-                        .addSubcommand("delete", new CommandLine(new TransformDelete(this))));
+                        .addSubcommand("delete", new CommandLine(new TransformDelete(this))))
+                .addSubcommand("catalog", new CommandLine(new CatalogCommand(this))
+                        .addSubcommand("list", new CommandLine(new CatalogList(this)))
+                        .addSubcommand("get", new CommandLine(new CatalogGet(this))));
 
         commandLine.getCommandSpec().versionProvider(new DebeziumVersionProvider());
 

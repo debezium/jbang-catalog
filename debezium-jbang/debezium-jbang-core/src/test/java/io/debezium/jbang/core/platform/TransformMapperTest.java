@@ -25,8 +25,8 @@ class TransformMapperTest {
         TransformResponse response = new TransformResponse(
                 1L, "my-transform", "A transform", "filter", "io.debezium.filter",
                 Set.of(new TransformResponse.NamedRef(10L, "vault")),
-                Map.of("key", "value"),
-                new PredicateDto("topicNameMatches", Map.of("pattern", "orders"), true));
+                Map.<String, Object> of("key", "value"),
+                new PredicateDto("topicNameMatches", Map.<String, Object> of("pattern", "orders"), true));
 
         Transform t = TransformMapper.toDomain(response);
 
@@ -37,7 +37,7 @@ class TransformMapperTest {
         assertThat(t.schema()).isEqualTo("io.debezium.filter");
         assertThat(t.vaults()).containsExactly(new Transform.NamedRef(10L, "vault"));
         assertThat(t.config()).containsEntry("key", "value");
-        assertThat(t.predicate()).isEqualTo(new Transform.Predicate("topicNameMatches", Map.of("pattern", "orders"), true));
+        assertThat(t.predicate()).isEqualTo(new Transform.Predicate("topicNameMatches", Map.<String, Object> of("pattern", "orders"), true));
     }
 
     @Test
