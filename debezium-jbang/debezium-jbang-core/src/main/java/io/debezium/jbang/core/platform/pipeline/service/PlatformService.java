@@ -21,4 +21,6 @@ public interface PlatformService {
     PipelineResponse updatePipeline(Long id, PipelineRequest pipelineRequest);
 
     void deletePipeline(Long id);
+
+    String getLogs(Long id);
 }

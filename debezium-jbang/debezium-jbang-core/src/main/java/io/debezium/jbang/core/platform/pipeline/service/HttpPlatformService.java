@@ -50,4 +50,9 @@ public class HttpPlatformService implements PlatformService {
     public void deletePipeline(Long id) {
         pipelineAPI.deletePipeline(id);
     }
+
+    @Override
+    public String getLogs(Long id) {
+        return pipelineAPI.getLogs(id);
+    }
 }

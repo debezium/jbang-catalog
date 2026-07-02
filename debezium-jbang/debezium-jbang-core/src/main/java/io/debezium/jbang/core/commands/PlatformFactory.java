@@ -7,6 +7,8 @@ package io.debezium.jbang.core.commands;
 
 import java.net.URI;
 
+import io.debezium.jbang.core.platform.catalog.service.CatalogService;
+import io.debezium.jbang.core.platform.catalog.service.HttpCatalogService;
 import io.debezium.jbang.core.platform.connection.service.ConnectionService;
 import io.debezium.jbang.core.platform.connection.service.HttpConnectionService;
 import io.debezium.jbang.core.platform.destination.service.DestinationService;
@@ -47,7 +49,11 @@ public class PlatformFactory {
         return new HttpTransformService(resolvedApiUrl());
     }
 
-    private URI resolvedApiUrl() {
+    public CatalogService catalog() {
+        return new HttpCatalogService(resolvedApiUrl());
+    }
+
+    public URI resolvedApiUrl() {
         if (platformAddress != null && !platformAddress.isBlank()) {
             return URI.create(platformAddress);
         }

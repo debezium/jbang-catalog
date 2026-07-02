@@ -46,4 +46,9 @@ public interface PipelineAPI {
     @DELETE
     @Path("/{id}")
     void deletePipeline(@PathParam("id") Long id);
+
+    @GET
+    @Path("/{id}/logs")
+    @Produces(MediaType.TEXT_PLAIN)
+    String getLogs(@PathParam("id") Long id);
 }
