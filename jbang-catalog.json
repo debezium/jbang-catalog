@@ -3,7 +3,7 @@
     "debezium": {
       "script-ref": "debezium-jbang/debezium-jbang-main/dist/DebeziumJBang.java",
       "properties": {
-        "debezium.jbang.version": "3.6.0-SNAPSHOT"
+        "debezium.jbang.version": "3.7.0-SNAPSHOT"
       }
     }
   },
