@@ -5,6 +5,12 @@
  */
 package io.debezium.jbang.core.commands.catalog;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.PlatformFactory;
@@ -18,6 +24,9 @@ public class CatalogList extends DebeziumCommand {
     @CommandLine.Option(names = { "--type" }, description = "Filter by component type (e.g. source, destination)")
     String type;
 
+    @CommandLine.Option(names = { "--format" }, description = "Output format: table (default) or json", defaultValue = "table")
+    String format;
+
     @CommandLine.Mixin
     PlatformFactory platformFactory;
 
@@ -28,7 +37,33 @@ public class CatalogList extends DebeziumCommand {
     @Override
     public Integer doCall() throws Exception {
         CatalogService catalogService = platformFactory.catalog();
-        println(catalogService.getCatalog(type));
+        String json = catalogService.getCatalog(type);
+        if ("json".equalsIgnoreCase(format)) {
+            println(json);
+            return 0;
+        }
+        printTable(json);
         return 0;
+    }
+
+    private void printTable(String json) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode components = mapper.readTree(json).path("components");
+
+        List<String[]> rows = new ArrayList<>();
+        components.fields().forEachRemaining(typeEntry -> {
+            String typeName = typeEntry.getKey();
+            typeEntry.getValue().fieldNames().forEachRemaining(className -> rows.add(new String[]{ typeName, className }));
+        });
+
+        int typeWidth = Math.max(4, rows.stream().mapToInt(r -> r[0].length()).max().orElse(4));
+        int classWidth = Math.max(5, rows.stream().mapToInt(r -> r[1].length()).max().orElse(5));
+
+        String fmt = "%-" + typeWidth + "s  %-" + classWidth + "s%n";
+        printf(fmt, "TYPE", "CLASS");
+        printf(fmt, "-".repeat(typeWidth), "-".repeat(classWidth));
+        for (String[] row : rows) {
+            printf(fmt, row[0], row[1]);
+        }
     }
 }
