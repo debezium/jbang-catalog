@@ -5,6 +5,12 @@
  */
 package io.debezium.jbang.core.commands.catalog;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.PlatformFactory;
@@ -21,6 +27,9 @@ public class CatalogGet extends DebeziumCommand {
     @CommandLine.Parameters(index = "1", description = "Component class (e.g. io.debezium.connector.postgresql.PostgresConnector)")
     String componentClass;
 
+    @CommandLine.Option(names = { "--format" }, description = "Output format: table (default) or json", defaultValue = "table")
+    String format;
+
     @CommandLine.Mixin
     PlatformFactory platformFactory;
 
@@ -31,7 +40,30 @@ public class CatalogGet extends DebeziumCommand {
     @Override
     public Integer doCall() throws Exception {
         CatalogService catalogService = platformFactory.catalog();
-        println(catalogService.getComponentDescriptor(type, componentClass));
+        String json = catalogService.getComponentDescriptor(type, componentClass);
+        if ("json".equalsIgnoreCase(format)) {
+            println(json);
+            return 0;
+        }
+        printTable(json);
         return 0;
+    }
+
+    private void printTable(String json) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(json);
+
+        List<String[]> rows = new ArrayList<>();
+        root.fields().forEachRemaining(entry -> rows.add(new String[]{ entry.getKey(), entry.getValue().asText() }));
+
+        int fieldWidth = Math.max(5, rows.stream().mapToInt(r -> r[0].length()).max().orElse(5));
+        int valueWidth = Math.max(5, rows.stream().mapToInt(r -> r[1].length()).max().orElse(5));
+
+        String fmt = "%-" + fieldWidth + "s  %-" + valueWidth + "s%n";
+        printf(fmt, "FIELD", "VALUE");
+        printf(fmt, "-".repeat(fieldWidth), "-".repeat(valueWidth));
+        for (String[] row : rows) {
+            printf(fmt, row[0], row[1]);
+        }
     }
 }

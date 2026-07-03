@@ -13,10 +13,18 @@ import org.junit.jupiter.api.Test;
 class CatalogGetJB extends AbstractCatalogJB {
 
     @Test
-    @DisplayName("should get component descriptor as JSON")
+    @DisplayName("should get component descriptor as table")
     void shouldGetComponentDescriptor() {
         String output = executeCatalog("get source io.debezium.connector.postgresql.PostgresConnector");
 
-        assertThat(output.trim()).isNotEmpty();
+        assertThat(output).contains("FIELD").contains("VALUE").contains("className");
+    }
+
+    @Test
+    @DisplayName("should get component descriptor as json when --format=json")
+    void shouldGetComponentDescriptorAsJson() {
+        String output = executeCatalog("get source io.debezium.connector.postgresql.PostgresConnector --format=json");
+
+        assertThat(output.trim()).startsWith("{");
     }
 }
