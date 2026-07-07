@@ -16,7 +16,17 @@ import io.debezium.jbang.test.suite.JBangTestPicoCliCommand;
 abstract class AbstractCatalogJB extends JBangTestPicoCliCommand {
 
     static final String MANIFEST_JSON = "{\"components\":{\"source\":{\"io.debezium.connector.postgresql.PostgresConnector\":{}}}}";
-    static final String DESCRIPTOR_JSON = "{\"className\":\"io.debezium.connector.postgresql.PostgresConnector\",\"type\":\"source\",\"displayName\":\"PostgreSQL\"}";
+    static final String DESCRIPTOR_JSON = "{\"name\":\"Debezium PostgreSQL Connector\",\"type\":\"source-connector\",\"version\":\"3.7.0-SNAPSHOT\"," +
+            "\"metadata\":{\"description\":\"Captures row-level changes from a PostgreSQL database in near real-time.\"}," +
+            "\"properties\":[" +
+            "{\"name\":\"database.hostname\",\"type\":\"string\",\"required\":true," +
+            "\"display\":{\"label\":\"Hostname\",\"description\":\"Resolvable hostname or IP address of the database server.\",\"group\":\"Connection\",\"importance\":\"high\"}},"
+            +
+            "{\"name\":\"database.port\",\"type\":\"number\",\"default\":\"5432\"," +
+            "\"display\":{\"label\":\"Port\",\"description\":\"Port of the database server.\",\"group\":\"Connection\",\"importance\":\"high\"}}," +
+            "{\"name\":\"database.user\",\"type\":\"string\",\"required\":true," +
+            "\"display\":{\"label\":\"User\",\"description\":\"Name of the database user.\",\"group\":\"Connection\",\"importance\":\"high\"}}" +
+            "]}";
 
     static final Network NETWORK = Network.newNetwork();
 

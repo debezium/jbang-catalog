@@ -7,13 +7,14 @@ package io.debezium.jbang.core.commands.catalog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.PlatformFactory;
+import io.debezium.jbang.core.platform.catalog.dto.CatalogManifest;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 
 import picocli.CommandLine;
@@ -48,13 +49,16 @@ public class CatalogList extends DebeziumCommand {
 
     private void printTable(String json) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode components = mapper.readTree(json).path("components");
+        CatalogManifest manifest = mapper.readValue(json, CatalogManifest.class);
 
         List<String[]> rows = new ArrayList<>();
-        components.fields().forEachRemaining(typeEntry -> {
-            String typeName = typeEntry.getKey();
-            typeEntry.getValue().fieldNames().forEachRemaining(className -> rows.add(new String[]{ typeName, className }));
-        });
+        if (manifest.components() != null) {
+            for (Map.Entry<String, Map<String, Object>> typeEntry : manifest.components().entrySet()) {
+                for (String className : typeEntry.getValue().keySet()) {
+                    rows.add(new String[]{ typeEntry.getKey(), className });
+                }
+            }
+        }
 
         int typeWidth = Math.max(4, rows.stream().mapToInt(r -> r[0].length()).max().orElse(4));
         int classWidth = Math.max(5, rows.stream().mapToInt(r -> r[1].length()).max().orElse(5));

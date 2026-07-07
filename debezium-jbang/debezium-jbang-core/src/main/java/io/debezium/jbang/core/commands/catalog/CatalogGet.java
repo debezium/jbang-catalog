@@ -5,15 +5,15 @@
  */
 package io.debezium.jbang.core.commands.catalog;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.PlatformFactory;
+import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
+import io.debezium.jbang.core.platform.catalog.dto.Property;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 
 import picocli.CommandLine;
@@ -51,19 +51,40 @@ public class CatalogGet extends DebeziumCommand {
 
     private void printTable(String json) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(json);
+        ComponentDescriptor descriptor = mapper.readValue(json, ComponentDescriptor.class);
 
-        List<String[]> rows = new ArrayList<>();
-        root.fields().forEachRemaining(entry -> rows.add(new String[]{ entry.getKey(), entry.getValue().asText() }));
+        printf("Name:    %s%n", descriptor.name());
+        printf("Type:    %s%n", descriptor.type());
+        printf("Version: %s%n", descriptor.version());
+        if (descriptor.metadata() != null && descriptor.metadata().description() != null) {
+            printf("Description: %s%n", descriptor.metadata().description());
+        }
+        println();
 
-        int fieldWidth = Math.max(5, rows.stream().mapToInt(r -> r[0].length()).max().orElse(5));
-        int valueWidth = Math.max(5, rows.stream().mapToInt(r -> r[1].length()).max().orElse(5));
+        List<Property> properties = descriptor.properties();
+        if (properties == null || properties.isEmpty()) {
+            println("No properties defined.");
+            return;
+        }
 
-        String fmt = "%-" + fieldWidth + "s  %-" + valueWidth + "s%n";
-        printf(fmt, "FIELD", "VALUE");
-        printf(fmt, "-".repeat(fieldWidth), "-".repeat(valueWidth));
-        for (String[] row : rows) {
-            printf(fmt, row[0], row[1]);
+        int nameWidth = Math.max(4, properties.stream().mapToInt(p -> p.name().length()).max().orElse(4));
+        int typeWidth = Math.max(4, properties.stream().mapToInt(p -> p.type() != null ? p.type().length() : 0).max().orElse(4));
+        int defaultWidth = Math.max(7, properties.stream().mapToInt(p -> p.defaultValue() != null ? p.defaultValue().length() : 0).max().orElse(7));
+
+        String fmt = "%-" + nameWidth + "s  %-" + typeWidth + "s  %-8s  %-" + defaultWidth + "s  %s%n";
+        printf(fmt, "NAME", "TYPE", "REQUIRED", "DEFAULT", "DESCRIPTION");
+        printf(fmt, "-".repeat(nameWidth), "-".repeat(typeWidth), "--------", "-".repeat(defaultWidth), "-----------");
+        for (Property p : properties) {
+            String desc = p.display() != null && p.display().description() != null ? p.display().description() : "";
+            if (desc.length() > 80) {
+                desc = desc.substring(0, 77) + "...";
+            }
+            printf(fmt,
+                    p.name(),
+                    p.type() != null ? p.type() : "",
+                    Boolean.TRUE.equals(p.required()) ? "true" : "false",
+                    p.defaultValue() != null ? p.defaultValue() : "",
+                    desc);
         }
     }
 }
