@@ -76,11 +76,15 @@ abstract class AbstractPipelineIT extends NativeTestPicoCliCommand {
         return "http://localhost:" + CONDUCTOR.getMappedPort(8080);
     }
 
-    protected String executePipeline(String subCommand) {
+    public String executePipeline(String subCommand) {
         return execute("pipeline " + subCommand + " --platform-address " + apiUrl());
     }
 
-    protected String pipelineYaml(String name) {
+    public String executePipelineWithError(String subCommand) {
+        return nativeInstance.execute("pipeline " + subCommand + " --platform-address " + apiUrl(), true, true);
+    }
+
+    public String pipelineYaml(String name) {
         return "name: " + name + "\nlogLevel: INFO\nsource:\n  id: " + SOURCE_ID + "\ndestination:\n  id: " + DEST_ID + "\n";
     }
 }
