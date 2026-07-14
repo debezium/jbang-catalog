@@ -7,6 +7,8 @@ package io.debezium.jbang.core.platform.source.service;
 
 import java.util.List;
 
+import io.debezium.jbang.core.platform.source.dto.SignalCollectionVerifyRequest;
+import io.debezium.jbang.core.platform.source.dto.SignalVerificationResult;
 import io.debezium.jbang.core.platform.source.dto.SourceRequest;
 import io.debezium.jbang.core.platform.source.dto.SourceResponse;
 
@@ -21,4 +23,6 @@ public interface SourceService {
     SourceResponse updateSource(Long id, SourceRequest sourceRequest);
 
     void deleteSource(Long id);
+
+    SignalVerificationResult verifySignals(SignalCollectionVerifyRequest request);
 }

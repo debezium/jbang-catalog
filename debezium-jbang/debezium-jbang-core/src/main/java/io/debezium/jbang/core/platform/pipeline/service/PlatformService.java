@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.debezium.jbang.core.platform.pipeline.dto.PipelineRequest;
 import io.debezium.jbang.core.platform.pipeline.dto.PipelineResponse;
+import io.debezium.jbang.core.platform.pipeline.dto.SignalRequest;
 
 public interface PlatformService {
 
@@ -23,4 +24,6 @@ public interface PlatformService {
     void deletePipeline(Long id);
 
     String getLogs(Long id);
+
+    void sendSignal(Long id, SignalRequest request);
 }

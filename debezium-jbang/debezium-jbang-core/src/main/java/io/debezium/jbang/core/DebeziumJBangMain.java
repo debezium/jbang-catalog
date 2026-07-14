@@ -9,9 +9,13 @@ import java.util.concurrent.Callable;
 
 import jakarta.inject.Inject;
 
+import io.debezium.jbang.core.commands.SwitchCommand;
 import io.debezium.jbang.core.commands.catalog.CatalogCommand;
 import io.debezium.jbang.core.commands.catalog.CatalogGet;
 import io.debezium.jbang.core.commands.catalog.CatalogList;
+import io.debezium.jbang.core.commands.config.ConfigCommand;
+import io.debezium.jbang.core.commands.config.ConfigGet;
+import io.debezium.jbang.core.commands.config.ConfigSet;
 import io.debezium.jbang.core.commands.connection.ConnectionCollections;
 import io.debezium.jbang.core.commands.connection.ConnectionCommand;
 import io.debezium.jbang.core.commands.connection.ConnectionCreate;
@@ -33,6 +37,7 @@ import io.debezium.jbang.core.commands.pipeline.PipelineDelete;
 import io.debezium.jbang.core.commands.pipeline.PipelineGet;
 import io.debezium.jbang.core.commands.pipeline.PipelineList;
 import io.debezium.jbang.core.commands.pipeline.PipelineLogs;
+import io.debezium.jbang.core.commands.pipeline.PipelineSignal;
 import io.debezium.jbang.core.commands.pipeline.PipelineUpdate;
 import io.debezium.jbang.core.commands.source.SourceCommand;
 import io.debezium.jbang.core.commands.source.SourceCreate;
@@ -40,6 +45,7 @@ import io.debezium.jbang.core.commands.source.SourceDelete;
 import io.debezium.jbang.core.commands.source.SourceGet;
 import io.debezium.jbang.core.commands.source.SourceList;
 import io.debezium.jbang.core.commands.source.SourceUpdate;
+import io.debezium.jbang.core.commands.source.SourceVerifySignals;
 import io.debezium.jbang.core.commands.transform.TransformCommand;
 import io.debezium.jbang.core.commands.transform.TransformCreate;
 import io.debezium.jbang.core.commands.transform.TransformDelete;
@@ -47,6 +53,7 @@ import io.debezium.jbang.core.commands.transform.TransformGet;
 import io.debezium.jbang.core.commands.transform.TransformList;
 import io.debezium.jbang.core.commands.transform.TransformUpdate;
 import io.debezium.jbang.core.commands.version.DebeziumVersionProvider;
+import io.debezium.jbang.core.commands.version.VersionCommand;
 import io.debezium.jbang.core.common.Printer;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -74,19 +81,26 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
         }
 
         commandLine = new CommandLine(this, factory)
+                .addSubcommand("version", new CommandLine(new VersionCommand(this)))
+                .addSubcommand("switch", new CommandLine(new SwitchCommand(this)))
+                .addSubcommand("config", new CommandLine(new ConfigCommand(this))
+                        .addSubcommand("get", new CommandLine(new ConfigGet(this)))
+                        .addSubcommand("set", new CommandLine(new ConfigSet(this))))
                 .addSubcommand("pipeline", new CommandLine(new PipelineCommand(this))
                         .addSubcommand("list", new CommandLine(new PipelineList(this)))
                         .addSubcommand("get", new CommandLine(new PipelineGet(this)))
                         .addSubcommand("create", new CommandLine(new PipelineCreate(this)))
                         .addSubcommand("update", new CommandLine(new PipelineUpdate(this)))
                         .addSubcommand("delete", new CommandLine(new PipelineDelete(this)))
-                        .addSubcommand("logs", new CommandLine(new PipelineLogs(this))))
+                        .addSubcommand("logs", new CommandLine(new PipelineLogs(this)))
+                        .addSubcommand("signal", new CommandLine(new PipelineSignal(this))))
                 .addSubcommand("source", new CommandLine(new SourceCommand(this))
                         .addSubcommand("list", new CommandLine(new SourceList(this)))
                         .addSubcommand("get", new CommandLine(new SourceGet(this)))
                         .addSubcommand("create", new CommandLine(new SourceCreate(this)))
                         .addSubcommand("update", new CommandLine(new SourceUpdate(this)))
-                        .addSubcommand("delete", new CommandLine(new SourceDelete(this))))
+                        .addSubcommand("delete", new CommandLine(new SourceDelete(this)))
+                        .addSubcommand("verify-signals", new CommandLine(new SourceVerifySignals(this))))
                 .addSubcommand("destination", new CommandLine(new DestinationCommand(this))
                         .addSubcommand("list", new CommandLine(new DestinationList(this)))
                         .addSubcommand("get", new CommandLine(new DestinationGet(this)))
