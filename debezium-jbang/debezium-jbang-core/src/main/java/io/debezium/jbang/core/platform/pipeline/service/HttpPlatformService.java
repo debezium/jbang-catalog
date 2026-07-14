@@ -11,6 +11,7 @@ import java.util.List;
 import io.debezium.jbang.core.platform.pipeline.api.PipelineAPI;
 import io.debezium.jbang.core.platform.pipeline.dto.PipelineRequest;
 import io.debezium.jbang.core.platform.pipeline.dto.PipelineResponse;
+import io.debezium.jbang.core.platform.pipeline.dto.SignalRequest;
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
 import io.vertx.core.http.HttpClientOptions;
 
@@ -54,5 +55,10 @@ public class HttpPlatformService implements PlatformService {
     @Override
     public String getLogs(Long id) {
         return pipelineAPI.getLogs(id);
+    }
+
+    @Override
+    public void sendSignal(Long id, SignalRequest request) {
+        pipelineAPI.sendSignal(id, request);
     }
 }

@@ -13,10 +13,8 @@ import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import io.debezium.jbang.core.util.CommandLineUtil;
-
 public class Version {
-    public static final String POM_PATH = "/META-INF/maven/io.debezium/debezium-core/pom.properties";
+    public static final String POM_PATH = "/META-INF/maven/io.debezium.jbang/debezium-jbang-core/pom.properties";
     public static final String VERSION_PROPERTY = "version";
     public static final String JBANG_VERSION_FILE = "version.txt";
     public static final String JBANG_HOME = "JBANG_HOME";
@@ -61,25 +59,21 @@ public class Version {
         catch (Exception ignore) {
         }
 
-        try {
-            Path cachePath = Paths.get(CommandLineUtil.getHomeDir().toString())
-                    .resolve(JBANG_CACHE + JBANG_VERSION_FILE);
-            String version = Files.readString(cachePath).trim();
-            if (!version.isBlank()) {
-                return version;
+        // Resolve jbang binary by well-known absolute path so this works even when jbang is not on PATH
+        Path userHome = Paths.get(System.getProperty("user.home"));
+        for (Path candidate : new Path[]{ userHome.resolve(".jbang/bin/jbang"), userHome.resolve(".sdkman/candidates/jbang/current/bin/jbang") }) {
+            if (Files.exists(candidate)) {
+                try {
+                    Process p = new ProcessBuilder(candidate.toString(), "version").start();
+                    String version = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+                    if (p.waitFor(10, TimeUnit.SECONDS) && p.exitValue() == 0 && !version.isBlank()) {
+                        return version;
+                    }
+                }
+                catch (Exception ignore) {
+                }
+                break;
             }
-        }
-        catch (Exception ignore) {
-        }
-
-        try {
-            Process p = new ProcessBuilder("jbang", "version").start();
-            String version = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
-            if (p.waitFor(10, TimeUnit.SECONDS) && p.exitValue() == 0 && !version.isBlank()) {
-                return version;
-            }
-        }
-        catch (Exception ignore) {
         }
 
         return null;

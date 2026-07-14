@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.MediaType;
 
 import io.debezium.jbang.core.platform.pipeline.dto.PipelineRequest;
 import io.debezium.jbang.core.platform.pipeline.dto.PipelineResponse;
+import io.debezium.jbang.core.platform.pipeline.dto.SignalRequest;
 
 @Path("/api/pipelines")
 public interface PipelineAPI {
@@ -51,4 +52,9 @@ public interface PipelineAPI {
     @Path("/{id}/logs")
     @Produces(MediaType.TEXT_PLAIN)
     String getLogs(@PathParam("id") Long id);
+
+    @POST
+    @Path("/{id}/signals")
+    @Consumes(MediaType.APPLICATION_JSON)
+    void sendSignal(@PathParam("id") Long id, SignalRequest request);
 }

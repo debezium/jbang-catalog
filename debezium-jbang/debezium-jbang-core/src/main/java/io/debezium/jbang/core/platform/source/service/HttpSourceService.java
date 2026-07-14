@@ -9,6 +9,8 @@ import java.net.URI;
 import java.util.List;
 
 import io.debezium.jbang.core.platform.source.api.SourceAPI;
+import io.debezium.jbang.core.platform.source.dto.SignalCollectionVerifyRequest;
+import io.debezium.jbang.core.platform.source.dto.SignalVerificationResult;
 import io.debezium.jbang.core.platform.source.dto.SourceRequest;
 import io.debezium.jbang.core.platform.source.dto.SourceResponse;
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
@@ -48,5 +50,10 @@ public class HttpSourceService implements SourceService {
     @Override
     public void deleteSource(Long id) {
         sourceAPI.deleteSource(id);
+    }
+
+    @Override
+    public SignalVerificationResult verifySignals(SignalCollectionVerifyRequest request) {
+        return sourceAPI.verifySignals(request);
     }
 }

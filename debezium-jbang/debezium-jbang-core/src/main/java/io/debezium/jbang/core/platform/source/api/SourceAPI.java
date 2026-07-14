@@ -17,6 +17,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+import io.debezium.jbang.core.platform.source.dto.SignalCollectionVerifyRequest;
+import io.debezium.jbang.core.platform.source.dto.SignalVerificationResult;
 import io.debezium.jbang.core.platform.source.dto.SourceRequest;
 import io.debezium.jbang.core.platform.source.dto.SourceResponse;
 
@@ -46,4 +48,10 @@ public interface SourceAPI {
     @DELETE
     @Path("/{id}")
     void deleteSource(@PathParam("id") Long id);
+
+    @POST
+    @Path("/signals/verify")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    SignalVerificationResult verifySignals(SignalCollectionVerifyRequest request);
 }
