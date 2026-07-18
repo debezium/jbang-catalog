@@ -19,7 +19,7 @@ public class SourceVerifySignals extends DebeziumCommand {
     @CommandLine.Option(names = { "--connection" }, required = true, description = "Connection id to verify signal collection for")
     Long connectionId;
 
-    @CommandLine.Option(names = { "--table" }, description = "Fully qualified signal table name (e.g. public.debezium_signal)")
+    @CommandLine.Option(names = { "--table" }, required = true, description = "Fully qualified signal table name (e.g. public.debezium_signal)")
     String table;
 
     @CommandLine.Mixin
