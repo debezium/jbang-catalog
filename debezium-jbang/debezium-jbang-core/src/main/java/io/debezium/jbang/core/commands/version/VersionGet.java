@@ -7,11 +7,15 @@ package io.debezium.jbang.core.commands.version;
 
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
+import io.debezium.jbang.core.commands.PlatformFactory;
 
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "get", description = "Display current Debezium CLI version", sortOptions = false)
 public class VersionGet extends DebeziumCommand {
+
+    @CommandLine.Mixin
+    PlatformFactory platformFactory;
 
     public VersionGet(DebeziumJBangMain main) {
         super(main);
@@ -26,7 +30,12 @@ public class VersionGet extends DebeziumCommand {
         }
 
         if (version.getCore() != null) {
-            println("Debezium Core version: " + version.getCore());
+            println("Debezium CLI version: " + version.getCore());
+        }
+
+        String platformVersion = platformFactory.getPlatformVersion();
+        if (platformVersion != null) {
+            println("Debezium Platform version: " + platformVersion);
         }
 
         return 0;

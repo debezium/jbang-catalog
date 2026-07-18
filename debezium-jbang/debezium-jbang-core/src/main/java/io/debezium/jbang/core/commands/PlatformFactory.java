@@ -6,7 +6,12 @@
 package io.debezium.jbang.core.commands;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
+import io.debezium.jbang.core.configuration.Configuration;
+import io.debezium.jbang.core.configuration.Environment;
+import io.debezium.jbang.core.configuration.Platform;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 import io.debezium.jbang.core.platform.catalog.service.HttpCatalogService;
 import io.debezium.jbang.core.platform.connection.service.ConnectionService;
@@ -19,7 +24,11 @@ import io.debezium.jbang.core.platform.source.service.HttpSourceService;
 import io.debezium.jbang.core.platform.source.service.SourceService;
 import io.debezium.jbang.core.platform.transform.service.HttpTransformService;
 import io.debezium.jbang.core.platform.transform.service.TransformService;
+import io.debezium.jbang.core.platform.version.api.PlatformVersionAPI;
+import io.debezium.jbang.core.platform.version.dto.PlatformVersionInfo;
 import io.debezium.jbang.core.util.ConfigUtil;
+import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
+import io.vertx.core.http.HttpClientOptions;
 
 import picocli.CommandLine;
 
@@ -51,6 +60,38 @@ public class PlatformFactory {
 
     public CatalogService catalog() {
         return new HttpCatalogService(resolvedApiUrl());
+    }
+
+    public boolean isPlatformConfigured() {
+        if (platformAddress != null && !platformAddress.isBlank()) {
+            return true;
+        }
+        Configuration config = Configuration.load();
+        Map<String, Environment> envs = config.getEnvironments();
+        if (envs != null && !envs.isEmpty()) {
+            return true;
+        }
+        List<Platform> platforms = config.getPlatforms();
+        return platforms != null && !platforms.isEmpty();
+    }
+
+    public String getPlatformVersion() {
+        if (!isPlatformConfigured()) {
+            return null;
+        }
+        try {
+            PlatformVersionAPI api = QuarkusRestClientBuilder.newBuilder()
+                    .baseUri(resolvedApiUrl())
+                    .httpClientOptions(new HttpClientOptions())
+                    .build(PlatformVersionAPI.class);
+            PlatformVersionInfo info = api.getInfo();
+            if (info != null && info.info() != null) {
+                return info.info().version();
+            }
+        }
+        catch (Exception ignore) {
+        }
+        return null;
     }
 
     public URI resolvedApiUrl() {
