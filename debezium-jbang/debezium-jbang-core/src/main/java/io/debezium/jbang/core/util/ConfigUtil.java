@@ -19,6 +19,11 @@ public class ConfigUtil {
     }
 
     public static String getPlatformUrl() {
+        String envUrl = System.getenv("DEBEZIUM_PLATFORM_URL");
+        if (envUrl != null && !envUrl.isBlank()) {
+            return envUrl;
+        }
+
         Configuration config = Configuration.load();
 
         // New schema: environments map + top-level default key
