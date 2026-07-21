@@ -39,6 +39,7 @@ public class ConfigGet extends DebeziumCommand {
                         entry.getValue().getUrl() != null ? entry.getValue().getUrl() : "",
                         entry.getKey().equals(active) ? "*" : "");
             }
+            println("Effective platform URL: " + ConfigUtil.getPlatformUrl());
             return 0;
         }
 
