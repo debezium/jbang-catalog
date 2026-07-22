@@ -9,6 +9,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.debezium.jbang.core.configuration.Configuration;
 import io.debezium.jbang.core.configuration.Environment;
 import io.debezium.jbang.core.configuration.Platform;
@@ -24,11 +27,7 @@ import io.debezium.jbang.core.platform.source.service.HttpSourceService;
 import io.debezium.jbang.core.platform.source.service.SourceService;
 import io.debezium.jbang.core.platform.transform.service.HttpTransformService;
 import io.debezium.jbang.core.platform.transform.service.TransformService;
-import io.debezium.jbang.core.platform.version.api.PlatformVersionAPI;
-import io.debezium.jbang.core.platform.version.dto.PlatformVersionInfo;
 import io.debezium.jbang.core.util.ConfigUtil;
-import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
-import io.vertx.core.http.HttpClientOptions;
 
 import picocli.CommandLine;
 
@@ -80,13 +79,42 @@ public class PlatformFactory {
             return null;
         }
         try {
-            PlatformVersionAPI api = QuarkusRestClientBuilder.newBuilder()
-                    .baseUri(resolvedApiUrl())
-                    .httpClientOptions(new HttpClientOptions())
-                    .build(PlatformVersionAPI.class);
-            PlatformVersionInfo info = api.getInfo();
-            if (info != null && info.info() != null) {
-                return info.info().version();
+            String catalogJson = catalog().getCatalog(null);
+            if (catalogJson != null) {
+                JsonNode root = new ObjectMapper().readTree(catalogJson);
+                JsonNode build = root.path("build");
+                if (!build.isMissingNode()) {
+                    String version = build.path("version").asText(null);
+                    if (version != null) {
+                        StringBuilder sb = new StringBuilder(version);
+                        String timestamp = build.path("timestamp").asText(null);
+                        String commit = build.path("sourceCommit").asText(null);
+                        String branch = build.path("sourceBranch").asText(null);
+                        if (timestamp != null || commit != null || branch != null) {
+                            sb.append(" (");
+                            boolean first = true;
+                            if (timestamp != null) {
+                                sb.append("built ").append(timestamp);
+                                first = false;
+                            }
+                            if (commit != null) {
+                                if (!first) {
+                                    sb.append(", ");
+                                }
+                                sb.append("commit ").append(commit);
+                                first = false;
+                            }
+                            if (branch != null) {
+                                if (!first) {
+                                    sb.append(", ");
+                                }
+                                sb.append("branch ").append(branch);
+                            }
+                            sb.append(")");
+                        }
+                        return sb.toString();
+                    }
+                }
             }
         }
         catch (Exception ignore) {
