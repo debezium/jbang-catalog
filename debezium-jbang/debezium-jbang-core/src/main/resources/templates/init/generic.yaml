@@ -1,0 +1,24 @@
+# dbz.yaml — Debezium Server project file ({source_type} → {sink_type})
+# Edit the fields below, then run: debezium validate
+
+version: "1.0"
+
+# A short name for this CDC pipeline
+name: "my-{source_type}-to-{sink_type}"
+
+source:
+  type: {source_type}
+  config:
+    # Add your source connector configuration here
+    database.hostname: localhost
+
+sink:
+  type: {sink_type}
+  config:
+    # Add your sink configuration here
+
+build:
+  image:
+    name: debezium-server
+    tag: {source_type}-{sink_type}-latest
+    registry: ghcr.io/myorg

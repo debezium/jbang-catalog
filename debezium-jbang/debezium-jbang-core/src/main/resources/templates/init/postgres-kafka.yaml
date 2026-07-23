@@ -1,0 +1,43 @@
+# dbz.yaml — Debezium Server project file (PostgreSQL → Kafka)
+# Edit the fields below, then run: debezium validate
+
+version: "1.0"
+
+# A short name for this CDC pipeline
+name: "my-postgres-to-kafka"
+
+source:
+  # Connector type — do not change
+  type: postgres
+  config:
+    # Hostname or IP of the PostgreSQL server
+    database.hostname: localhost
+    database.port: 5432
+    # Credentials — use ${ENV_VAR} to avoid storing secrets in plain text
+    database.user: ${DBZ_DB_USER}
+    database.password: ${DBZ_DB_PASS}
+    database.dbname: mydb
+    # Comma-separated list of tables to capture (schema.table)
+    table.include.list: public.orders
+    # Logical replication slot name — must be unique per connector instance
+    slot.name: debezium
+    # Publication name created on the PostgreSQL server
+    publication.name: dbz_publication
+
+sink:
+  # Sink type — do not change
+  type: kafka
+  config:
+    # Kafka bootstrap servers (comma-separated for multiple brokers)
+    producer.bootstrap.servers: localhost:9092
+    # All change events will be published under this topic prefix
+    topic.prefix: cdc
+
+build:
+  image:
+    # Name of the container image to build
+    name: debezium-server
+    # Image tag
+    tag: postgres-kafka-latest
+    # Container registry (leave empty to use Docker Hub)
+    registry: ghcr.io/myorg

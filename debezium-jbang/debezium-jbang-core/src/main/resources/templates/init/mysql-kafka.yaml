@@ -1,0 +1,42 @@
+# dbz.yaml — Debezium Server project file (MySQL → Kafka)
+# Edit the fields below, then run: debezium validate
+
+version: "1.0"
+
+# A short name for this CDC pipeline
+name: "my-mysql-to-kafka"
+
+source:
+  # Connector type — do not change
+  type: mysql
+  config:
+    # Hostname or IP of the MySQL server
+    database.hostname: localhost
+    database.port: 3306
+    # Credentials — use ${ENV_VAR} to avoid storing secrets in plain text
+    database.user: ${DBZ_DB_USER}
+    database.password: ${DBZ_DB_PASS}
+    # Unique server ID for this connector (must differ from other MySQL replicas)
+    database.server.id: 1
+    # Comma-separated list of databases to capture (leave empty to capture all)
+    database.include.list: mydb
+    # Comma-separated list of tables to capture (db.table format)
+    table.include.list: mydb.orders
+
+sink:
+  # Sink type — do not change
+  type: kafka
+  config:
+    # Kafka bootstrap servers (comma-separated for multiple brokers)
+    producer.bootstrap.servers: localhost:9092
+    # All change events will be published under this topic prefix
+    topic.prefix: cdc
+
+build:
+  image:
+    # Name of the container image to build
+    name: debezium-server
+    # Image tag
+    tag: mysql-kafka-latest
+    # Container registry (leave empty to use Docker Hub)
+    registry: ghcr.io/myorg
