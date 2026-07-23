@@ -31,6 +31,7 @@ import io.debezium.jbang.core.commands.destination.DestinationDelete;
 import io.debezium.jbang.core.commands.destination.DestinationGet;
 import io.debezium.jbang.core.commands.destination.DestinationList;
 import io.debezium.jbang.core.commands.destination.DestinationUpdate;
+import io.debezium.jbang.core.commands.init.InitCommand;
 import io.debezium.jbang.core.commands.pipeline.PipelineCommand;
 import io.debezium.jbang.core.commands.pipeline.PipelineCreate;
 import io.debezium.jbang.core.commands.pipeline.PipelineDelete;
@@ -52,6 +53,7 @@ import io.debezium.jbang.core.commands.transform.TransformDelete;
 import io.debezium.jbang.core.commands.transform.TransformGet;
 import io.debezium.jbang.core.commands.transform.TransformList;
 import io.debezium.jbang.core.commands.transform.TransformUpdate;
+import io.debezium.jbang.core.commands.validate.ValidateCommand;
 import io.debezium.jbang.core.commands.version.DebeziumVersionProvider;
 import io.debezium.jbang.core.commands.version.VersionCommand;
 import io.debezium.jbang.core.common.Printer;
@@ -124,7 +126,9 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
                         .addSubcommand("delete", new CommandLine(new TransformDelete(this))))
                 .addSubcommand("catalog", new CommandLine(new CatalogCommand(this))
                         .addSubcommand("list", new CommandLine(new CatalogList(this)))
-                        .addSubcommand("get", new CommandLine(new CatalogGet(this))));
+                        .addSubcommand("get", new CommandLine(new CatalogGet(this))))
+                .addSubcommand("init", new CommandLine(new InitCommand(this)))
+                .addSubcommand("validate", new CommandLine(new ValidateCommand(this)));
 
         commandLine.getCommandSpec().versionProvider(new DebeziumVersionProvider());
 

@@ -1,0 +1,36 @@
+# dbz.yaml — Debezium Server project file (MongoDB → Kafka)
+# Edit the fields below, then run: debezium validate
+
+version: "1.0"
+
+# A short name for this CDC pipeline
+name: "my-mongodb-to-kafka"
+
+source:
+  # Connector type — do not change
+  type: mongodb
+  config:
+    # MongoDB connection string — use ${ENV_VAR} for credentials
+    mongodb.connection.string: mongodb://${DBZ_DB_USER}:${DBZ_DB_PASS}@localhost:27017/?replicaSet=rs0
+    # Comma-separated list of databases to capture (leave empty to capture all)
+    database.include.list: mydb
+    # Comma-separated list of collections to capture (db.collection format)
+    collection.include.list: mydb.orders
+
+sink:
+  # Sink type — do not change
+  type: kafka
+  config:
+    # Kafka bootstrap servers (comma-separated for multiple brokers)
+    producer.bootstrap.servers: localhost:9092
+    # All change events will be published under this topic prefix
+    topic.prefix: cdc
+
+build:
+  image:
+    # Name of the container image to build
+    name: debezium-server
+    # Image tag
+    tag: mongodb-kafka-latest
+    # Container registry (leave empty to use Docker Hub)
+    registry: ghcr.io/myorg
