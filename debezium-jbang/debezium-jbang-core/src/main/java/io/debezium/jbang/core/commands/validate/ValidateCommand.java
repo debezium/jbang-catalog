@@ -81,13 +81,19 @@ public class ValidateCommand extends DebeziumCommand {
             errors.add("sink.type: unknown sink '" + config.sink().type() + "'. Known: " + String.join(", ", KNOWN_SINKS));
         }
 
-        // Check that all ${VAR} references are set in the shell environment
+        // Check that all ${VAR} references are set in the shell environment (skip comment lines)
         String rawContent = Files.readString(path);
-        Matcher matcher = ENV_VAR_PATTERN.matcher(rawContent);
-        while (matcher.find()) {
-            String varName = matcher.group(1);
-            if (System.getenv(varName) == null) {
-                errors.add("env: referenced variable ${" + varName + "} is not set in the shell environment");
+        Set<String> reportedVars = new java.util.HashSet<>();
+        for (String line : rawContent.lines().toList()) {
+            if (line.stripLeading().startsWith("#")) {
+                continue;
+            }
+            Matcher matcher = ENV_VAR_PATTERN.matcher(line);
+            while (matcher.find()) {
+                String varName = matcher.group(1);
+                if (System.getenv(varName) == null && reportedVars.add(varName)) {
+                    errors.add("env: referenced variable ${" + varName + "} is not set in the shell environment");
+                }
             }
         }
 
