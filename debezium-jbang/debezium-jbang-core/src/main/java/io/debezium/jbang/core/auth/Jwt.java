@@ -5,12 +5,12 @@
  */
 package io.debezium.jbang.core.auth;
 
-import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.time.Instant;
-import java.util.Base64;
+import java.util.Date;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
 
 /**
  * Reads claims out of a JWT payload without verifying the signature.
@@ -21,11 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public final class Jwt {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final JWTClaimsSet claims;
 
-    private final JsonNode claims;
-
-    private Jwt(JsonNode claims) {
+    private Jwt(JWTClaimsSet claims) {
         this.claims = claims;
     }
 
@@ -33,28 +31,29 @@ public final class Jwt {
         if (token == null || token.isBlank()) {
             throw new AuthException("Cannot read an empty token");
         }
-        String[] parts = token.split("\\.");
-        if (parts.length < 2) {
-            throw new AuthException("Token is not a JWT (expected three dot-separated parts)");
-        }
         try {
-            byte[] payload = Base64.getUrlDecoder().decode(parts[1]);
-            return new Jwt(MAPPER.readTree(new String(payload, StandardCharsets.UTF_8)));
+            return new Jwt(JWTParser.parse(token).getJWTClaimsSet());
         }
-        catch (Exception e) {
-            throw new AuthException("Cannot decode token payload: " + e.getMessage(), e);
+        catch (ParseException e) {
+            throw new AuthException("Token is not a JWT: " + e.getMessage(), e);
         }
     }
 
     /** Null-safe: returns null rather than throwing, since every claim here is optional. */
     public String claim(String name) {
-        JsonNode value = claims.get(name);
-        return value == null || value.isNull() ? null : value.asText();
+        try {
+            return claims.getStringClaim(name);
+        }
+        catch (ParseException e) {
+            // Present but not a string. For the identity and type claims read here that is the same
+            // situation as absent, and not worth failing a status display over.
+            return null;
+        }
     }
 
     public Instant expiresAt() {
-        JsonNode exp = claims.get("exp");
-        return exp == null || exp.isNull() ? null : Instant.ofEpochSecond(exp.asLong());
+        Date expiry = claims.getExpirationTime();
+        return expiry == null ? null : expiry.toInstant();
     }
 
     /**
@@ -73,6 +72,6 @@ public final class Jwt {
             return email;
         }
         String username = claim("preferred_username");
-        return username != null ? username : claim("sub");
+        return username != null ? username : claims.getSubject();
     }
 }

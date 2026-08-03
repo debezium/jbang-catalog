@@ -84,8 +84,11 @@ public class DeviceFlowTest {
                 + "\"interval\":" + interval + ",\"expires_in\":600}";
     }
 
+    // token_type is REQUIRED of a token response by RFC 6749 §5.1, and every real authorization
+    // server sends it; the fixture carries it so that it exercises the same shape they do.
     private static final String SUCCESS = "{\"access_token\":\"" + JwtFixtures.ACCESS_TOKEN
-            + "\",\"refresh_token\":\"refresh-abc\",\"expires_in\":300,\"scope\":\"openid profile email offline_access\"}";
+            + "\",\"token_type\":\"Bearer\",\"refresh_token\":\"refresh-abc\",\"expires_in\":300,"
+            + "\"scope\":\"openid profile email offline_access\"}";
 
     private DeviceAuthorization authorize(Pkce pkce) {
         return DeviceFlow.authorize(endpoints, "dbz-cli", "openid profile email offline_access", pkce);

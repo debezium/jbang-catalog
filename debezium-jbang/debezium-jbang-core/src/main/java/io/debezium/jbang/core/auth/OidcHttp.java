@@ -5,108 +5,68 @@
  */
 package io.debezium.jbang.core.auth;
 
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.io.IOException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.oauth2.sdk.ErrorObject;
+import com.nimbusds.oauth2.sdk.ParseException;
+import com.nimbusds.oauth2.sdk.http.HTTPRequest;
+import com.nimbusds.oauth2.sdk.http.HTTPResponse;
+
+import net.minidev.json.JSONObject;
 
 /**
- * Minimal JDK-native HTTP for the OAuth endpoints.
+ * Shared plumbing for the OAuth endpoint calls: timeouts, transport errors, and reading a JSON body.
  * <p>
  * Deliberately not the Quarkus REST client: these calls go to the authorization server, not to the
  * platform API, so they must not pick up the bearer filter or the platform base URI.
  */
 final class OidcHttp {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
-
-    private static final HttpClient CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .build();
+    private static final int CONNECT_TIMEOUT_MS = 10_000;
+    private static final int READ_TIMEOUT_MS = 30_000;
 
     private OidcHttp() {
     }
 
-    static JsonNode get(String url) {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(TIMEOUT)
-                .header("Accept", "application/json")
-                .GET()
-                .build();
-        return send(request, url);
+    /** Applies the CLI's timeouts and turns a transport failure into a message naming the endpoint. */
+    static HTTPResponse send(HTTPRequest request, String url) {
+        request.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        request.setReadTimeout(READ_TIMEOUT_MS);
+        try {
+            return request.send();
+        }
+        catch (IOException e) {
+            throw new AuthException("Cannot reach " + url + " — " + e.getMessage(), e);
+        }
     }
 
     /**
-     * POSTs {@code application/x-www-form-urlencoded} and parses the body regardless of status.
+     * Reads the JSON body whatever the status was.
      * <p>
      * The OAuth error taxonomy lives in the JSON {@code error} field, not in the status code —
      * {@code authorization_pending} and {@code access_denied} are both HTTP 400 — so the caller has
      * to see the body of a failed response, not an exception.
      */
-    static JsonNode postForm(String url, Map<String, String> form) {
-        StringJoiner body = new StringJoiner("&");
-        for (Map.Entry<String, String> entry : form.entrySet()) {
-            if (entry.getValue() != null) {
-                body.add(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8)
-                        + "="
-                        + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
-            }
+    static JSONObject body(HTTPResponse response, String url) {
+        try {
+            return response.getBodyAsJSONObject();
         }
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(TIMEOUT)
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .header("Accept", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body.toString(), StandardCharsets.UTF_8))
-                .build();
-        return send(request, url);
+        catch (ParseException e) {
+            throw new AuthException("Non-JSON response (HTTP " + response.getStatusCode() + ") from " + url
+                    + " — is this an OIDC issuer URL? First bytes: " + head(response.getBody()));
+        }
     }
 
-    private static JsonNode send(HttpRequest request, String url) {
-        try {
-            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-            String payload = response.body();
-            if (payload == null || payload.isBlank()) {
-                throw new AuthException("Empty response (HTTP " + response.statusCode() + ") from " + url);
-            }
-            try {
-                return MAPPER.readTree(payload);
-            }
-            catch (Exception e) {
-                throw new AuthException("Non-JSON response (HTTP " + response.statusCode() + ") from " + url
-                        + " — is this an OIDC issuer URL? First bytes: " + head(payload));
-            }
-        }
-        catch (AuthException e) {
-            throw e;
-        }
-        catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new AuthException("Interrupted while calling " + url);
-        }
-        catch (Exception e) {
-            throw new AuthException("Cannot reach " + url + " — " + e.getMessage());
-        }
+    /** Renders {@code error_description} as a trailing parenthetical, or nothing when absent. */
+    static String describe(ErrorObject error) {
+        return error.getDescription() == null ? "" : " (" + error.getDescription() + ")";
     }
 
     private static String head(String payload) {
+        if (payload == null || payload.isBlank()) {
+            return "(empty body)";
+        }
         String trimmed = payload.strip();
         return trimmed.length() <= 120 ? trimmed : trimmed.substring(0, 120) + "…";
-    }
-
-    static String text(JsonNode node, String field) {
-        JsonNode value = node.get(field);
-        return value == null || value.isNull() ? null : value.asText();
     }
 }

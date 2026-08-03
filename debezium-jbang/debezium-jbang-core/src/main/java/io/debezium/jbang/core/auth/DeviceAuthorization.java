@@ -5,7 +5,9 @@
  */
 package io.debezium.jbang.core.auth;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import java.net.URI;
+
+import com.nimbusds.oauth2.sdk.device.DeviceAuthorizationSuccessResponse;
 
 /**
  * The device authorization response (RFC 8628 §3.2).
@@ -14,6 +16,9 @@ import com.fasterxml.jackson.databind.JsonNode;
  * displayed; the short {@code userCode} is the only thing the human sees. They are unrelated
  * mechanisms — the device grant has no authorization code, which is why PKCE protects nothing here
  * on its own and is carried only because Keycloak binds it to the token exchange.
+ * <p>
+ * Kept as a record of plain strings rather than exposing the SDK response, so that the commands and
+ * their tests do not have to know which library parsed the wire format.
  */
 public record DeviceAuthorization(String deviceCode,
         String userCode,
@@ -22,37 +27,16 @@ public record DeviceAuthorization(String deviceCode,
         int intervalSeconds,
         int expiresInSeconds) {
 
-    /** RFC 8628 §3.2: absent {@code interval} means 5 seconds. */
-    private static final int DEFAULT_INTERVAL = 5;
-
-    private static final int DEFAULT_EXPIRY = 600;
-
-    static DeviceAuthorization from(JsonNode response) {
-        String deviceCode = OidcHttp.text(response, "device_code");
-        String userCode = OidcHttp.text(response, "user_code");
-        String verificationUri = OidcHttp.text(response, "verification_uri");
-
-        if (deviceCode == null || userCode == null || verificationUri == null) {
-            String error = OidcHttp.text(response, "error");
-            throw new AuthException(error != null
-                    ? "Device authorization refused: " + error
-                            + describe(OidcHttp.text(response, "error_description"))
-                    : "Device authorization response was missing device_code, user_code or verification_uri");
-        }
-
-        JsonNode interval = response.get("interval");
-        JsonNode expiresIn = response.get("expires_in");
+    /** The SDK applies RFC 8628 §3.2's default of 5 seconds when {@code interval} is absent. */
+    static DeviceAuthorization from(DeviceAuthorizationSuccessResponse response) {
+        URI complete = response.getVerificationURIComplete();
 
         return new DeviceAuthorization(
-                deviceCode,
-                userCode,
-                verificationUri,
-                OidcHttp.text(response, "verification_uri_complete"),
-                interval == null || interval.isNull() ? DEFAULT_INTERVAL : interval.asInt(),
-                expiresIn == null || expiresIn.isNull() ? DEFAULT_EXPIRY : expiresIn.asInt());
-    }
-
-    private static String describe(String errorDescription) {
-        return errorDescription == null ? "" : " (" + errorDescription + ")";
+                response.getDeviceCode().getValue(),
+                response.getUserCode().getValue(),
+                response.getVerificationURI().toString(),
+                complete == null ? null : complete.toString(),
+                (int) response.getInterval(),
+                (int) response.getLifetime());
     }
 }

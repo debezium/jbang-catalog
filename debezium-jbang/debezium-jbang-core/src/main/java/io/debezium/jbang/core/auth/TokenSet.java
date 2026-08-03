@@ -7,34 +7,42 @@ package io.debezium.jbang.core.auth;
 
 import java.time.Instant;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.nimbusds.oauth2.sdk.AccessTokenResponse;
+import com.nimbusds.oauth2.sdk.Scope;
+import com.nimbusds.oauth2.sdk.token.AccessToken;
+import com.nimbusds.oauth2.sdk.token.RefreshToken;
+import com.nimbusds.oauth2.sdk.token.Tokens;
 
 /**
  * A token endpoint success response.
  * <p>
  * {@code expiresAt} is computed once on receipt rather than stored as a duration, so that a token
- * cached in memory can be checked for expiry later without tracking when it arrived.
+ * cached in memory can be checked for expiry later without tracking when it arrived. That is the
+ * only reason this exists rather than passing the SDK's response around.
  */
 public record TokenSet(String accessToken, String refreshToken, String scope, Instant expiresAt) {
 
     /** Refresh this far before actual expiry, so a request in flight cannot cross the boundary. */
     private static final long LEEWAY_SECONDS = 30;
 
-    static TokenSet from(JsonNode response) {
-        String accessToken = OidcHttp.text(response, "access_token");
+    static TokenSet from(AccessTokenResponse response) {
+        Tokens tokens = response.getTokens();
+        AccessToken accessToken = tokens.getAccessToken();
         if (accessToken == null) {
             throw new AuthException("Token response contained no access_token");
         }
-        JsonNode expiresIn = response.get("expires_in");
-        Instant expiry = expiresIn == null || expiresIn.isNull()
-                ? null
-                : Instant.now().plusSeconds(expiresIn.asLong());
+        RefreshToken refreshToken = tokens.getRefreshToken();
+        Scope scope = accessToken.getScope();
+
+        // The SDK reports an absent expires_in as a zero lifetime, which is not the same as a token
+        // that expires now — it means the server did not say, so we must not treat it as stale.
+        long lifetime = accessToken.getLifetime();
 
         return new TokenSet(
-                accessToken,
-                OidcHttp.text(response, "refresh_token"),
-                OidcHttp.text(response, "scope"),
-                expiry);
+                accessToken.getValue(),
+                refreshToken == null ? null : refreshToken.getValue(),
+                scope == null ? null : scope.toString(),
+                lifetime > 0 ? Instant.now().plusSeconds(lifetime) : null);
     }
 
     public boolean isExpired() {
