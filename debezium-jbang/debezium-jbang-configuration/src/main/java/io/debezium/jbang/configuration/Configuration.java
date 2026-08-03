@@ -16,6 +16,8 @@ public class Configuration {
 
     public static final String DEFAULT_PLATFORM_URL = "http://localhost:8080";
     private static final String ENV_VARIABLE = "DEBEZIUM_PLATFORM_URL";
+    private static final String ISSUER_ENV_VARIABLE = "DEBEZIUM_OIDC_ISSUER";
+    private static final String CLIENT_ID_ENV_VARIABLE = "DEBEZIUM_OIDC_CLIENT_ID";
 
     @JsonMerge
     private Platform platform;
@@ -65,5 +67,37 @@ public class Configuration {
         }
 
         return URI.create(DEFAULT_PLATFORM_URL);
+    }
+
+    /**
+     * The OIDC issuer for the active environment, or null when none is configured.
+     * <p>
+     * Same precedence as the platform URL — environment variable first, then the active entry in
+     * {@code ~/.dbz/config.yaml} — so that overriding one does not silently leave the other pointing
+     * somewhere else.
+     */
+    @JsonIgnore
+    public String getResolvedIssuer() {
+        String envIssuer = System.getenv(ISSUER_ENV_VARIABLE);
+        if (envIssuer != null && !envIssuer.isBlank()) {
+            return envIssuer;
+        }
+        Environment active = platform == null ? null : platform.findActiveEnvironment();
+        return active == null || active.getIssuer() == null || active.getIssuer().isBlank()
+                ? null
+                : active.getIssuer();
+    }
+
+    /** The OAuth client id for the active environment, or null to let the caller default it. */
+    @JsonIgnore
+    public String getResolvedClientId() {
+        String envClientId = System.getenv(CLIENT_ID_ENV_VARIABLE);
+        if (envClientId != null && !envClientId.isBlank()) {
+            return envClientId;
+        }
+        Environment active = platform == null ? null : platform.findActiveEnvironment();
+        return active == null || active.getClientId() == null || active.getClientId().isBlank()
+                ? null
+                : active.getClientId();
     }
 }

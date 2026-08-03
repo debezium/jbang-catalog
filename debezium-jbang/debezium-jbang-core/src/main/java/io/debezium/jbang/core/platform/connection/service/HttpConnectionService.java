@@ -8,6 +8,7 @@ package io.debezium.jbang.core.platform.connection.service;
 import java.net.URI;
 import java.util.List;
 
+import io.debezium.jbang.core.auth.BearerTokenFilter;
 import io.debezium.jbang.core.platform.connection.api.ConnectionAPI;
 import io.debezium.jbang.core.platform.connection.dto.CollectionTree;
 import io.debezium.jbang.core.platform.connection.dto.ConnectionRequest;
@@ -24,6 +25,7 @@ public class HttpConnectionService implements ConnectionService {
         this.connectionAPI = QuarkusRestClientBuilder.newBuilder()
                 .baseUri(platformAddress)
                 .httpClientOptions(new HttpClientOptions())
+                .register(new BearerTokenFilter(platformAddress.toString()))
                 .build(ConnectionAPI.class);
     }
 

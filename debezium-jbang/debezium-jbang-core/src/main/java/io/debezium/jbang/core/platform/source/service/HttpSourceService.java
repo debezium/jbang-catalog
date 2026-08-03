@@ -8,6 +8,7 @@ package io.debezium.jbang.core.platform.source.service;
 import java.net.URI;
 import java.util.List;
 
+import io.debezium.jbang.core.auth.BearerTokenFilter;
 import io.debezium.jbang.core.platform.source.api.SourceAPI;
 import io.debezium.jbang.core.platform.source.dto.SignalCollectionVerifyRequest;
 import io.debezium.jbang.core.platform.source.dto.SignalVerificationResult;
@@ -24,6 +25,7 @@ public class HttpSourceService implements SourceService {
         this.sourceAPI = QuarkusRestClientBuilder.newBuilder()
                 .baseUri(platformAddress)
                 .httpClientOptions(new HttpClientOptions())
+                .register(new BearerTokenFilter(platformAddress.toString()))
                 .build(SourceAPI.class);
     }
 
