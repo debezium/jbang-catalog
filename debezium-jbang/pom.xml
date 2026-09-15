@@ -12,6 +12,7 @@
 
     <artifactId>debezium-jbang</artifactId>
     <packaging>pom</packaging>
+    <name>Debezium JBang</name>
 
     <dependencyManagement>
         <dependencies>

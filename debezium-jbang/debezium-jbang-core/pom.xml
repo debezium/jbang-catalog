@@ -12,6 +12,7 @@
 
     <artifactId>debezium-jbang-core</artifactId>
     <packaging>jar</packaging>
+    <name>Debezium JBang Core</name>
 
     <properties>
         <skipNativeITs>true</skipNativeITs>

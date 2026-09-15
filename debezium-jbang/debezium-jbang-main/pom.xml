@@ -12,6 +12,7 @@
 
     <artifactId>debezium-jbang-main</artifactId>
     <packaging>jar</packaging>
+    <name>Debezium JBang CLI Distribution</name>
 
     <properties>
         <dist.dir>dist</dist.dir>

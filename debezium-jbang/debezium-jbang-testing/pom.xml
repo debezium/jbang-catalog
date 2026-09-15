@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>debezium-jbang-testing</artifactId>
+    <name>Debezium JBang Testing</name>
 
     <dependencies>
         <dependency>
