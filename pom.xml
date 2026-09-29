@@ -10,7 +10,7 @@
 
     <groupId>io.debezium.jbang</groupId>
     <artifactId>debezium-jbang-catalog</artifactId>
-    <version>3.7.0.Final</version>
+    <version>3.8.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Debezium JBang Catalog</name>
 
