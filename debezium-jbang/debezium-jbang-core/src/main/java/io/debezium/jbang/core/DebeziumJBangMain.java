@@ -63,6 +63,7 @@ import io.debezium.jbang.core.configuration.Configuration;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 
+import picocli.AutoComplete;
 import picocli.CommandLine;
 
 @QuarkusMain
@@ -135,7 +136,8 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
                 .addSubcommand("init", new CommandLine(new InitCommand(this)))
                 .addSubcommand("validate", new CommandLine(new ValidateCommand(this)))
                 .addSubcommand("build", new CommandLine(new BuildCommand(this)))
-                .addSubcommand("push", new CommandLine(new PushCommand(this)));
+                .addSubcommand("push", new CommandLine(new PushCommand(this)))
+                .addSubcommand(new CommandLine(new AutoComplete.GenerateCompletion()));
 
         commandLine.getCommandSpec().versionProvider(new DebeziumVersionProvider());
 
