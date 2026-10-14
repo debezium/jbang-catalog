@@ -25,8 +25,13 @@ runs:
     - name: Build Debezium JBang CLI (native)
       shell: ${{ inputs.shell }}
       run: >
-        ./mvnw clean install -B -pl :debezium-jbang -am -amd -DskipITs=false -Pnative
+        ./mvnw clean verify -B -pl :debezium-jbang -am -amd -DskipITs=false -Pnative
+    - name: Install Debezium JBang CLI
+      shell: ${{ inputs.shell }}
+      run: >
+        ./mvnw clean install -B -pl :debezium-jbang -am -amd -DskipITs -DskipTests
     - name: Build Debezium JBang CLI (JBang)
       shell: ${{ inputs.shell }}
       run: >
-        ./mvnw clean install -B -pl :debezium-jbang -am -amd -DskipJBs=false
+        jbang cache clear &&
+        ./mvnw verify -B -pl :debezium-jbang-core -DskipJBs=false
