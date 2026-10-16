@@ -5,10 +5,10 @@
  */
 package io.debezium.jbang.core.commands;
 
-import java.util.Map;
-
+import io.debezium.jbang.configuration.Configuration;
+import io.debezium.jbang.configuration.ConfigurationLoader;
+import io.debezium.jbang.configuration.Platform;
 import io.debezium.jbang.core.DebeziumJBangMain;
-import io.debezium.jbang.core.configuration.Configuration;
 
 import picocli.CommandLine;
 
@@ -24,21 +24,21 @@ public class SwitchCommand extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        Configuration config = Configuration.load();
-        Map<String, ?> environments = config.getEnvironments();
+        Configuration config = ConfigurationLoader.load();
+        Platform platform = config.getPlatform();
 
-        if (environments == null || environments.isEmpty()) {
+        if (platform == null || !platform.hasEnvironments()) {
             println("No environments configured. Use 'debezium config set platform-url <url> --env <name>' to add one.");
             return 1;
         }
 
-        if (!environments.containsKey(env)) {
-            println("Environment '" + env + "' not found. Available: " + String.join(", ", environments.keySet()));
+        if (platform.findEnvironment(env) == null) {
+            println("Environment '" + env + "' not found. Available: " + String.join(", ", platform.getEnvironments().keySet()));
             return 1;
         }
 
-        config.setDefaultEnv(env);
-        config.save();
+        platform.setActive(env);
+        ConfigurationLoader.save(config);
         println("Switched to environment: " + env);
         return 0;
     }

@@ -15,7 +15,9 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.debezium.jbang.core.configuration.Configuration;
+import io.debezium.jbang.configuration.Configuration;
+import io.debezium.jbang.configuration.ConfigurationLoader;
+import io.debezium.jbang.configuration.Registry;
 
 public class RegistryAuthResolver {
 
@@ -38,12 +40,15 @@ public class RegistryAuthResolver {
             return Optional.of(new RegistryAuth(envUser, envPass));
         }
 
-        // 2. ~/.dbz/config.yaml
-        Configuration config = Configuration.load();
-        if (config.getRegistry() != null
-                && config.getRegistry().getUsername() != null && !config.getRegistry().getUsername().isBlank()
-                && config.getRegistry().getPassword() != null && !config.getRegistry().getPassword().isBlank()) {
-            return Optional.of(new RegistryAuth(config.getRegistry().getUsername(), config.getRegistry().getPassword()));
+        // 2. ~/.dbz/config.yaml (build.container.registry)
+        Configuration config = ConfigurationLoader.load();
+        if (config.getBuild() != null && config.getBuild().getContainer() != null) {
+            Registry reg = config.getBuild().getContainer().getRegistry();
+            if (reg != null
+                    && reg.getUsername() != null && !reg.getUsername().isBlank()
+                    && reg.getPassword() != null && !reg.getPassword().isBlank()) {
+                return Optional.of(new RegistryAuth(reg.getUsername(), reg.getPassword()));
+            }
         }
 
         // 3. ~/.docker/config.json
