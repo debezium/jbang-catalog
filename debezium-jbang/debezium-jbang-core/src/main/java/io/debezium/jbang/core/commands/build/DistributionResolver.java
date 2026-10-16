@@ -30,7 +30,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import io.debezium.jbang.core.configuration.Configuration;
+import io.debezium.jbang.configuration.Configuration;
+import io.debezium.jbang.configuration.ConfigurationLoader;
 
 public class DistributionResolver {
 
@@ -43,7 +44,11 @@ public class DistributionResolver {
 
     public DistributionResolver(Consumer<String> logger) {
         this.logger = logger;
-        String configured = Configuration.load().getMavenCentralUrl();
+        Configuration config = ConfigurationLoader.load();
+        String configured = null;
+        if (config.getBuild() != null && config.getBuild().getMaven() != null) {
+            configured = config.getBuild().getMaven().getRemote();
+        }
         this.central = (configured != null && !configured.isBlank()) ? configured : DEFAULT_CENTRAL;
     }
 
@@ -92,7 +97,11 @@ public class DistributionResolver {
         command.add(profiles);
         command.add("-DskipTests");
         command.add("--no-transfer-progress");
-        String localRepo = Configuration.load().getMavenLocalRepo();
+        Configuration distConfig = ConfigurationLoader.load();
+        String localRepo = null;
+        if (distConfig.getBuild() != null && distConfig.getBuild().getMaven() != null) {
+            localRepo = distConfig.getBuild().getMaven().getLocal();
+        }
         if (localRepo != null && !localRepo.isBlank()) {
             command.add("-Dmaven.repo.local=" + localRepo);
         }

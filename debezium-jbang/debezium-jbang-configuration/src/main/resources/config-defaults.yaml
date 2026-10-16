@@ -1,0 +1,19 @@
+platform:
+  active: default
+  environments:
+    default:
+      url: "http://localhost:8080"
+build:
+  container:
+    base:
+      image: "eclipse-temurin"
+      tag: "21-jre"
+  maven:
+    local: "~/.m2"
+    remote: "https://repo1.maven.org/maven2"
+oci:
+  local: "~/.dbz/oci"
+  registry: "quay.io"
+  artifact:
+    name: "debezium/debezium-descriptors"
+    tag: "nightly"

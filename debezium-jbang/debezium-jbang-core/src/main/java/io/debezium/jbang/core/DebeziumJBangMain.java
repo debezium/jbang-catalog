@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 
 import jakarta.inject.Inject;
 
+import io.debezium.jbang.configuration.ConfigurationLoader;
 import io.debezium.jbang.core.commands.SwitchCommand;
 import io.debezium.jbang.core.commands.build.BuildCommand;
 import io.debezium.jbang.core.commands.build.PushCommand;
@@ -59,7 +60,6 @@ import io.debezium.jbang.core.commands.validate.ValidateCommand;
 import io.debezium.jbang.core.commands.version.DebeziumVersionProvider;
 import io.debezium.jbang.core.commands.version.VersionCommand;
 import io.debezium.jbang.core.common.Printer;
-import io.debezium.jbang.core.configuration.Configuration;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 
@@ -86,7 +86,7 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
             // ignore
         }
 
-        Configuration.initializeIfAbsent();
+        ConfigurationLoader.initializeIfAbsent();
 
         commandLine = new CommandLine(this, factory)
                 .addSubcommand("version", new CommandLine(new VersionCommand(this)))

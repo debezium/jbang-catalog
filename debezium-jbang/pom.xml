@@ -25,6 +25,7 @@
     <modules>
         <module>debezium-jbang-testing</module>
         <module>debezium-jbang-inventory</module>
+        <module>debezium-jbang-configuration</module>
         <module>debezium-jbang-core</module>
         <module>debezium-jbang-main</module>
     </modules>

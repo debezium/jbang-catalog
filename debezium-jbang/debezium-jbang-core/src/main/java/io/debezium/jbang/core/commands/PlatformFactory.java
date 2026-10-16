@@ -6,15 +6,13 @@
 package io.debezium.jbang.core.commands;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.debezium.jbang.core.configuration.Configuration;
-import io.debezium.jbang.core.configuration.Environment;
-import io.debezium.jbang.core.configuration.Platform;
+import io.debezium.jbang.configuration.Configuration;
+import io.debezium.jbang.configuration.ConfigurationLoader;
+import io.debezium.jbang.configuration.Platform;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 import io.debezium.jbang.core.platform.catalog.service.HttpCatalogService;
 import io.debezium.jbang.core.platform.connection.service.ConnectionService;
@@ -65,13 +63,9 @@ public class PlatformFactory {
         if (platformAddress != null && !platformAddress.isBlank()) {
             return true;
         }
-        Configuration config = Configuration.load();
-        Map<String, Environment> envs = config.getEnvironments();
-        if (envs != null && !envs.isEmpty()) {
-            return true;
-        }
-        List<Platform> platforms = config.getPlatforms();
-        return platforms != null && !platforms.isEmpty();
+        Configuration config = ConfigurationLoader.load();
+        Platform platform = config.getPlatform();
+        return platform != null && platform.hasEnvironments();
     }
 
     public String getPlatformVersion() {
