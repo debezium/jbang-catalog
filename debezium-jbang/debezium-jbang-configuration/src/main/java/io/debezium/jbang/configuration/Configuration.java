@@ -5,10 +5,10 @@
  */
 package io.debezium.jbang.configuration;
 
+import java.net.URI;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonMerge;
-
-import java.net.URI;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Configuration {

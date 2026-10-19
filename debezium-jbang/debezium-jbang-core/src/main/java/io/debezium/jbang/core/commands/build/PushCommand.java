@@ -15,7 +15,6 @@ import com.google.cloud.tools.jib.api.RegistryImage;
 import com.google.cloud.tools.jib.api.TarImage;
 
 import io.debezium.jbang.configuration.Configuration;
-import io.debezium.jbang.configuration.ConfigurationLoader;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.build.config.DbzConfig;
 import io.debezium.jbang.core.build.config.DbzConfigLoader;

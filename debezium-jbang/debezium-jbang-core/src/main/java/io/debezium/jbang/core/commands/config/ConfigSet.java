@@ -11,7 +11,6 @@ import io.debezium.jbang.configuration.ArtifactConfig;
 import io.debezium.jbang.configuration.Base;
 import io.debezium.jbang.configuration.Build;
 import io.debezium.jbang.configuration.Configuration;
-import io.debezium.jbang.configuration.ConfigurationLoader;
 import io.debezium.jbang.configuration.Container;
 import io.debezium.jbang.configuration.Environment;
 import io.debezium.jbang.configuration.Maven;

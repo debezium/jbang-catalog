@@ -6,8 +6,6 @@
 package io.debezium.jbang.core.commands;
 
 import io.debezium.jbang.configuration.Configuration;
-import io.debezium.jbang.configuration.ConfigurationLoader;
-import io.debezium.jbang.configuration.Platform;
 import io.debezium.jbang.core.DebeziumJBangMain;
 
 import picocli.CommandLine;
