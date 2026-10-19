@@ -28,7 +28,7 @@ public class PipelineList extends DebeziumCommand {
 
     @Override
     public Integer doCall() {
-        PlatformService platformService = platformFactory.pipeline();
+        PlatformService platformService = platformFactory.pipeline(configuration());
         List<Pipeline> pipelines = PipelineMapper.toDomain(platformService.listPipelines());
 
         if (pipelines.isEmpty()) {

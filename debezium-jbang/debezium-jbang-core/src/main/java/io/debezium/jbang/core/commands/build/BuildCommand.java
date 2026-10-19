@@ -120,7 +120,7 @@ public class BuildCommand extends DebeziumCommand {
 
         Path zipPath;
         try {
-            zipPath = new DistributionResolver(this::println).resolve(version, activeProfiles, explicitArtifacts);
+            zipPath = new DistributionResolver(this::println, configuration()).resolve(version, activeProfiles, explicitArtifacts);
         }
         catch (Exception e) {
             println("ERROR: Failed to resolve distribution: " + e.getMessage());
@@ -167,7 +167,7 @@ public class BuildCommand extends DebeziumCommand {
             }
         }
 
-        Configuration globalConfig = ConfigurationLoader.load();
+        Configuration globalConfig = configuration();
         String baseImage = DEFAULT_BASE_IMAGE;
         if (globalConfig.getBuild() != null && globalConfig.getBuild().getContainer() != null
                 && globalConfig.getBuild().getContainer().getBase() != null) {

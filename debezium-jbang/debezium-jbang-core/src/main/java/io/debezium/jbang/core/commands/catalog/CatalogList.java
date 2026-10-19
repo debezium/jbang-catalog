@@ -37,7 +37,7 @@ public class CatalogList extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        CatalogService catalogService = platformFactory.catalog();
+        CatalogService catalogService = platformFactory.catalog(configuration());
         String json = catalogService.getCatalog(type);
         if ("json".equalsIgnoreCase(format)) {
             println(json);

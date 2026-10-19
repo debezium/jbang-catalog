@@ -38,7 +38,7 @@ public class PipelineCreate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         PipelineRequest request = yamlMapper.readValue(file, PipelineRequest.class);
 
-        PlatformService platformService = platformFactory.pipeline();
+        PlatformService platformService = platformFactory.pipeline(configuration());
         Pipeline created = PipelineMapper.toDomain(platformService.createPipeline(request));
 
         println("Pipeline created with id: " + created.id());

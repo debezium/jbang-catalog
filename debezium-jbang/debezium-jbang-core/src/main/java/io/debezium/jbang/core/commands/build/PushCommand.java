@@ -63,12 +63,12 @@ public class PushCommand extends DebeziumCommand {
             return 1;
         }
 
-        ResolvedImage resolved = resolveImage(config, registryOverride, ConfigurationLoader.load());
+        ResolvedImage resolved = resolveImage(config, registryOverride, configuration());
         String fullImageRef = buildFullImageRef(resolved.registry(), resolved.name(), resolved.tag());
 
         println("Pushing " + resolved.name() + ":" + resolved.tag() + " → " + (resolved.registry() != null ? resolved.registry() : "Docker Hub") + "...");
 
-        Optional<RegistryAuth> auth = RegistryAuthResolver.resolve(resolved.registry());
+        Optional<RegistryAuth> auth = RegistryAuthResolver.resolve(resolved.registry(), configuration());
         if (auth.isEmpty()) {
             println("No credentials found — attempting anonymous push...");
             println("  (If this fails, set DBZ_REGISTRY_USERNAME/DBZ_REGISTRY_PASSWORD or run 'docker login')");

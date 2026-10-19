@@ -40,13 +40,13 @@ public class PipelineLogs extends DebeziumCommand {
             streamLogs();
         }
         else {
-            println(platformFactory.pipeline().getLogs(id));
+            println(platformFactory.pipeline(configuration()).getLogs(id));
         }
         return 0;
     }
 
     private void streamLogs() throws Exception {
-        String baseUrl = platformFactory.resolvedApiUrl().toString();
+        String baseUrl = platformFactory.resolvedApiUrl(configuration()).toString();
         URI wsUri = URI.create(baseUrl
                 .replace("http://", "ws://")
                 .replace("https://", "wss://")

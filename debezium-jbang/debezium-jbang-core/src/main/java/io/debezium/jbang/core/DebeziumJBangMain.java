@@ -7,6 +7,7 @@ package io.debezium.jbang.core;
 
 import java.util.concurrent.Callable;
 
+import io.debezium.jbang.configuration.Configuration;
 import jakarta.inject.Inject;
 
 import io.debezium.jbang.configuration.ConfigurationLoader;
@@ -77,6 +78,8 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
 
     private Printer out = new Printer.SystemOutPrinter();
 
+    private final Configuration configuration = ConfigurationLoader.get();
+
     public int run(String... args) {
         try {
             long pid = ProcessHandle.current().pid();
@@ -85,8 +88,6 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
         catch (Exception e) {
             // ignore
         }
-
-        ConfigurationLoader.initializeIfAbsent();
 
         commandLine = new CommandLine(this, factory)
                 .addSubcommand("version", new CommandLine(new VersionCommand(this)))
@@ -152,5 +153,13 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
 
     public Printer getOut() {
         return out;
+    }
+
+    public Configuration configuration() {
+        return this.configuration;
+    }
+
+    public void save(Configuration configuration) {
+        ConfigurationLoader.save(configuration);
     }
 }

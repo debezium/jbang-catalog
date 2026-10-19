@@ -41,7 +41,7 @@ public class TransformUpdate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         TransformRequest request = yamlMapper.readValue(file, TransformRequest.class);
 
-        TransformService transformService = platformFactory.transform();
+        TransformService transformService = platformFactory.transform(configuration());
         Transform updated = TransformMapper.toDomain(transformService.updateTransform(id, request));
 
         println("Transform " + updated.id() + " updated.");

@@ -8,8 +8,12 @@ package io.debezium.jbang.configuration;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonMerge;
 
+import java.net.URI;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Configuration {
+
+    public static final String DEFAULT_PLATFORM_URL = "http://localhost:8080";
 
     @JsonMerge
     private Platform platform;
@@ -42,5 +46,21 @@ public class Configuration {
 
     public void setOci(Oci oci) {
         this.oci = oci;
+    }
+
+    public URI getResolvedPlatform() {
+        String envUrl = System.getenv("DEBEZIUM_PLATFORM_URL");
+        if (envUrl != null && !envUrl.isBlank()) {
+            return URI.create(envUrl);
+        }
+
+        if (platform != null && platform.hasEnvironments()) {
+            Environment env = platform.findActiveEnvironment();
+            if (env != null && env.getUrl() != null && !env.getUrl().isBlank()) {
+                return URI.create(env.getUrl());
+            }
+        }
+
+        return URI.create(DEFAULT_PLATFORM_URL);
     }
 }

@@ -28,7 +28,7 @@ public class ConnectionCollections extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        ConnectionService connectionService = platformFactory.connection();
+        ConnectionService connectionService = platformFactory.connection(configuration());
         CollectionTree tree = connectionService.listAvailableCollections(id);
 
         if (tree.catalogs() == null || tree.catalogs().isEmpty()) {

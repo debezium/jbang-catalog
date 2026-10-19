@@ -38,7 +38,7 @@ public class ConnectionCreate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         ConnectionRequest request = yamlMapper.readValue(file, ConnectionRequest.class);
 
-        ConnectionService connectionService = platformFactory.connection();
+        ConnectionService connectionService = platformFactory.connection(configuration());
         Connection created = ConnectionMapper.toDomain(connectionService.createConnection(request));
 
         println("Connection created with id: " + created.id());

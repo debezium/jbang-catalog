@@ -28,7 +28,7 @@ public class DestinationList extends DebeziumCommand {
 
     @Override
     public Integer doCall() {
-        DestinationService destinationService = platformFactory.destination();
+        DestinationService destinationService = platformFactory.destination(configuration());
         List<Destination> destinations = DestinationMapper.toDomain(destinationService.listDestinations());
 
         if (destinations.isEmpty()) {

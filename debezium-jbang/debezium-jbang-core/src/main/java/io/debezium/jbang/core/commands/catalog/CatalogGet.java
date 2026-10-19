@@ -39,7 +39,7 @@ public class CatalogGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        CatalogService catalogService = platformFactory.catalog();
+        CatalogService catalogService = platformFactory.catalog(configuration());
         ComponentDescriptor descriptor = catalogService.getComponentDescriptor(type, componentClass);
         if ("json".equalsIgnoreCase(format)) {
             println(new ObjectMapper().writeValueAsString(descriptor));
