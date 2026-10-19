@@ -39,7 +39,6 @@ public class RegistryAuthResolver {
             return Optional.of(new RegistryAuth(envUser, envPass));
         }
 
-
         if (configuration.getBuild() != null && configuration.getBuild().getContainer() != null) {
             Registry reg = configuration.getBuild().getContainer().getRegistry();
             if (reg != null

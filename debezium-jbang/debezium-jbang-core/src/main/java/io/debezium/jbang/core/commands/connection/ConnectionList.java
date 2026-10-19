@@ -28,7 +28,7 @@ public class ConnectionList extends DebeziumCommand {
 
     @Override
     public Integer doCall() {
-        ConnectionService connectionService = platformFactory.connection();
+        ConnectionService connectionService = platformFactory.connection(configuration());
         List<Connection> connections = ConnectionMapper.toDomain(connectionService.listConnections());
 
         if (connections.isEmpty()) {

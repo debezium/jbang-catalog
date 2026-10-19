@@ -24,7 +24,7 @@ public class ConnectionSchemas extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        ConnectionService connectionService = platformFactory.connection();
+        ConnectionService connectionService = platformFactory.connection(configuration());
         println(connectionService.connectionSchemas());
         return 0;
     }

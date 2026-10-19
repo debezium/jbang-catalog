@@ -21,7 +21,6 @@ import com.google.cloud.tools.jib.api.TarImage;
 import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
 
 import io.debezium.jbang.configuration.Configuration;
-import io.debezium.jbang.configuration.ConfigurationLoader;
 import io.debezium.jbang.connectors.ConnectorRegistry;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.build.config.DbzConfig;

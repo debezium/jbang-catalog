@@ -7,9 +7,9 @@ package io.debezium.jbang.core;
 
 import java.util.concurrent.Callable;
 
-import io.debezium.jbang.configuration.Configuration;
 import jakarta.inject.Inject;
 
+import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.ConfigurationLoader;
 import io.debezium.jbang.core.commands.SwitchCommand;
 import io.debezium.jbang.core.commands.build.BuildCommand;

@@ -29,7 +29,7 @@ public class ConnectionGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        ConnectionService connectionService = platformFactory.connection();
+        ConnectionService connectionService = platformFactory.connection(configuration());
         Connection c = ConnectionMapper.toDomain(connectionService.getConnection(id));
 
         println("""
