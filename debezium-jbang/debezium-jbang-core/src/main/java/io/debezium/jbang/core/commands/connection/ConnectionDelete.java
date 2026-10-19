@@ -26,7 +26,7 @@ public class ConnectionDelete extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        var connectionService = platformFactory.connection();
+        var connectionService = platformFactory.connection(configuration());
         connectionService.deleteConnection(id);
 
         println("Connection " + id + " deleted.");

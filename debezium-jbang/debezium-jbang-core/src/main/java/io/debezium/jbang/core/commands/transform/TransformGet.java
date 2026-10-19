@@ -29,7 +29,7 @@ public class TransformGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        TransformService transformService = platformFactory.transform();
+        TransformService transformService = platformFactory.transform(configuration());
         Transform t = TransformMapper.toDomain(transformService.getTransform(id));
 
         println("""

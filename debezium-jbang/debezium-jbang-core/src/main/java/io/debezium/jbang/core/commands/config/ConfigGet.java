@@ -7,13 +7,10 @@ package io.debezium.jbang.core.commands.config;
 
 import java.util.Map;
 
-import io.debezium.jbang.configuration.Configuration;
-import io.debezium.jbang.configuration.ConfigurationLoader;
 import io.debezium.jbang.configuration.Environment;
 import io.debezium.jbang.configuration.Platform;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
-import io.debezium.jbang.core.util.ConfigUtil;
 
 import picocli.CommandLine;
 
@@ -26,8 +23,7 @@ public class ConfigGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        Configuration config = ConfigurationLoader.load();
-        Platform platform = config.getPlatform();
+        Platform platform = configuration().getPlatform();
 
         if (platform != null && platform.hasEnvironments()) {
             String active = platform.getActive();
@@ -39,34 +35,34 @@ public class ConfigGet extends DebeziumCommand {
                         env.getValue().getUrl() != null ? env.getValue().getUrl() : "",
                         env.getKey().equals(active) ? "*" : "");
             }
-            println("Effective platform URL: " + ConfigUtil.getPlatformUrl());
+            println("Effective platform URL: " + configuration().getResolvedPlatform().toString());
         }
         else {
             println("No environments configured.");
-            println("Default platform URL: " + ConfigUtil.getPlatformUrl());
+            println("Default platform URL: " + configuration().getResolvedPlatform().toString());
         }
 
-        if (config.getBuild() != null) {
+        if (configuration().getBuild() != null) {
             println("");
             println("Build:");
-            if (config.getBuild().getContainer() != null && config.getBuild().getContainer().getBase() != null) {
-                println("  container.base.image: " + config.getBuild().getContainer().getBase().getImage());
-                println("  container.base.tag:   " + config.getBuild().getContainer().getBase().getTag());
+            if (configuration().getBuild().getContainer() != null && configuration().getBuild().getContainer().getBase() != null) {
+                println("  container.base.image: " + configuration().getBuild().getContainer().getBase().getImage());
+                println("  container.base.tag:   " + configuration().getBuild().getContainer().getBase().getTag());
             }
-            if (config.getBuild().getMaven() != null) {
-                println("  maven.local:          " + config.getBuild().getMaven().getLocal());
-                println("  maven.remote:         " + config.getBuild().getMaven().getRemote());
+            if (configuration().getBuild().getMaven() != null) {
+                println("  maven.local:          " + configuration().getBuild().getMaven().getLocal());
+                println("  maven.remote:         " + configuration().getBuild().getMaven().getRemote());
             }
         }
 
-        if (config.getOci() != null) {
+        if (configuration().getOci() != null) {
             println("");
             println("OCI:");
-            println("  local:                " + config.getOci().getLocal());
-            println("  registry:             " + config.getOci().getRegistry());
-            if (config.getOci().getArtifact() != null) {
-                println("  artifact.name:        " + config.getOci().getArtifact().getName());
-                println("  artifact.tag:         " + config.getOci().getArtifact().getTag());
+            println("  local:                " + configuration().getOci().getLocal());
+            println("  registry:             " + configuration().getOci().getRegistry());
+            if (configuration().getOci().getArtifact() != null) {
+                println("  artifact.name:        " + configuration().getOci().getArtifact().getName());
+                println("  artifact.tag:         " + configuration().getOci().getArtifact().getTag());
             }
         }
 

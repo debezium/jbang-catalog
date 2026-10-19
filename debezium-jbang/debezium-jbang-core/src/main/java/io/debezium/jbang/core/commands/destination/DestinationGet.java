@@ -29,7 +29,7 @@ public class DestinationGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        DestinationService destinationService = platformFactory.destination();
+        DestinationService destinationService = platformFactory.destination(configuration());
         Destination d = DestinationMapper.toDomain(destinationService.getDestination(id));
 
         println("""

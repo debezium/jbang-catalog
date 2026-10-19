@@ -79,6 +79,18 @@ public class ConfigurationLoader {
         }
     }
 
+    public static Configuration get() {
+        Path configFile = getConfigFilePath();
+        if (!Files.exists(configFile)) {
+            Configuration config = loadDefaults();
+            save(config);
+
+            return config;
+        }
+
+        return load();
+    }
+
     private static Path getConfigDir() {
         return getHomeDir().resolve(CONFIG_DIR);
     }

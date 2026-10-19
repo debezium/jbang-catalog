@@ -29,7 +29,7 @@ public class PipelineGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        PlatformService platformService = platformFactory.pipeline();
+        PlatformService platformService = platformFactory.pipeline(configuration());
         Pipeline p = PipelineMapper.toDomain(platformService.getPipeline(id));
 
         StringBuilder transforms = new StringBuilder();

@@ -24,21 +24,20 @@ public class SwitchCommand extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        Configuration config = ConfigurationLoader.load();
-        Platform platform = config.getPlatform();
+        Configuration config = configuration();
 
-        if (platform == null || !platform.hasEnvironments()) {
+        if (config.getPlatform() == null || !config.getPlatform().hasEnvironments()) {
             println("No environments configured. Use 'debezium config set platform-url <url> --env <name>' to add one.");
             return 1;
         }
 
-        if (platform.findEnvironment(env) == null) {
-            println("Environment '" + env + "' not found. Available: " + String.join(", ", platform.getEnvironments().keySet()));
+        if (config.getPlatform().findEnvironment(env) == null) {
+            println("Environment '" + env + "' not found. Available: " + String.join(", ", config.getPlatform().getEnvironments().keySet()));
             return 1;
         }
 
-        platform.setActive(env);
-        ConfigurationLoader.save(config);
+        config.getPlatform().setActive(env);
+        save(config);
         println("Switched to environment: " + env);
         return 0;
     }

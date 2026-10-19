@@ -50,7 +50,7 @@ public class ConfigSet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        Configuration config = ConfigurationLoader.load();
+        Configuration config = configuration();
 
         switch (key) {
             case KEY_PLATFORM_URL -> setPlatformUrl(config);
@@ -72,7 +72,7 @@ public class ConfigSet extends DebeziumCommand {
             }
         }
 
-        ConfigurationLoader.save(config);
+        save(config);
         println("Set '" + key + "' to: " + value);
         return 0;
     }

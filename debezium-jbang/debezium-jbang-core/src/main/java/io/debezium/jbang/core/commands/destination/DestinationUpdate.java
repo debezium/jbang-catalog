@@ -41,7 +41,7 @@ public class DestinationUpdate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         DestinationRequest request = yamlMapper.readValue(file, DestinationRequest.class);
 
-        DestinationService destinationService = platformFactory.destination();
+        DestinationService destinationService = platformFactory.destination(configuration());
         Destination updated = DestinationMapper.toDomain(destinationService.updateDestination(id, request));
 
         println("Destination " + updated.id() + " updated.");

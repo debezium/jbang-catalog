@@ -28,7 +28,7 @@ public class SourceList extends DebeziumCommand {
 
     @Override
     public Integer doCall() {
-        SourceService sourceService = platformFactory.source();
+        SourceService sourceService = platformFactory.source(configuration());
         List<Source> sources = SourceMapper.toDomain(sourceService.listSources());
 
         if (sources.isEmpty()) {

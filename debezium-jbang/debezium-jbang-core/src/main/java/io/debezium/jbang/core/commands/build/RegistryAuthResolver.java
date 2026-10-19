@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.jbang.configuration.Configuration;
-import io.debezium.jbang.configuration.ConfigurationLoader;
 import io.debezium.jbang.configuration.Registry;
 
 public class RegistryAuthResolver {
@@ -32,7 +31,7 @@ public class RegistryAuthResolver {
     public record RegistryAuth(String username, String password) {
     }
 
-    public static Optional<RegistryAuth> resolve(String registry) {
+    public static Optional<RegistryAuth> resolve(String registry, Configuration configuration) {
         // 1. Environment variables
         String envUser = System.getenv(ENV_USERNAME);
         String envPass = System.getenv(ENV_PASSWORD);
@@ -40,10 +39,9 @@ public class RegistryAuthResolver {
             return Optional.of(new RegistryAuth(envUser, envPass));
         }
 
-        // 2. ~/.dbz/config.yaml (build.container.registry)
-        Configuration config = ConfigurationLoader.load();
-        if (config.getBuild() != null && config.getBuild().getContainer() != null) {
-            Registry reg = config.getBuild().getContainer().getRegistry();
+
+        if (configuration.getBuild() != null && configuration.getBuild().getContainer() != null) {
+            Registry reg = configuration.getBuild().getContainer().getRegistry();
             if (reg != null
                     && reg.getUsername() != null && !reg.getUsername().isBlank()
                     && reg.getPassword() != null && !reg.getPassword().isBlank()) {
