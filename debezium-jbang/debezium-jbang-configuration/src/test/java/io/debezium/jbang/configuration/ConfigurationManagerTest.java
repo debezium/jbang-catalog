@@ -6,22 +6,48 @@
 package io.debezium.jbang.configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-class ConfigurationLoaderTest {
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+
+class ConfigurationManagerTest {
 
     @TempDir
     Path tempDir;
 
+    private String originalHome;
+    private ConfigurationManager manager;
+
+    @BeforeEach
+    void setUp() {
+        originalHome = System.getProperty("user.home");
+        System.setProperty("user.home", tempDir.toString());
+
+        ObjectMapper yamlMapper = new ObjectMapper(
+                new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
+        manager = new ConfigurationManager(yamlMapper, message -> {
+        });
+    }
+
+    @AfterEach
+    void tearDown() {
+        System.setProperty("user.home", originalHome);
+    }
+
     @Test
     void shouldLoadDefaultsFromClasspath() {
-        Configuration config = ConfigurationLoader.loadDefaults();
+        Configuration config = manager.load();
 
         assertThat(config.getPlatform()).isNotNull();
         assertThat(config.getPlatform().getActive()).isEqualTo("default");
@@ -44,9 +70,7 @@ class ConfigurationLoaderTest {
 
     @Test
     void shouldReturnDefaultsWhenNoUserConfigExists() {
-        Path nonexistent = tempDir.resolve("nonexistent.yaml");
-
-        Configuration config = ConfigurationLoader.load(nonexistent);
+        Configuration config = manager.load();
 
         assertThat(config.getPlatform().getActive()).isEqualTo("default");
         assertThat(config.getBuild().getContainer().getBase().getImage()).isEqualTo("eclipse-temurin");
@@ -55,14 +79,13 @@ class ConfigurationLoaderTest {
 
     @Test
     void shouldDeepMergeUserConfigOverDefaults() throws IOException {
-        Path userConfig = tempDir.resolve("config.yaml");
-        Files.writeString(userConfig, """
+        writeUserConfig("""
                 build:
                   maven:
                     remote: "https://my-mirror.example.com/maven2"
                 """);
 
-        Configuration config = ConfigurationLoader.load(userConfig);
+        Configuration config = manager.load();
 
         assertThat(config.getBuild().getMaven().getRemote()).isEqualTo("https://my-mirror.example.com/maven2");
         assertThat(config.getBuild().getMaven().getLocal()).isEqualTo("~/.m2");
@@ -73,8 +96,7 @@ class ConfigurationLoaderTest {
 
     @Test
     void shouldOverridePlatformEnvironment() throws IOException {
-        Path userConfig = tempDir.resolve("config.yaml");
-        Files.writeString(userConfig, """
+        writeUserConfig("""
                 platform:
                   active: staging
                   environments:
@@ -82,7 +104,7 @@ class ConfigurationLoaderTest {
                       url: "http://staging:9090"
                 """);
 
-        Configuration config = ConfigurationLoader.load(userConfig);
+        Configuration config = manager.load();
 
         assertThat(config.getPlatform().getActive()).isEqualTo("staging");
         assertThat(config.getPlatform().getEnvironments()).containsKey("staging");
@@ -90,17 +112,15 @@ class ConfigurationLoaderTest {
     }
 
     @Test
-    void shouldSaveAndReload() throws IOException {
-        Configuration config = ConfigurationLoader.loadDefaults();
+    void shouldSaveAndReload() {
+        Configuration config = manager.load();
         config.getPlatform().setActive("production");
         config.getOci().setRegistry("ghcr.io");
 
-        ConfigurationLoader.save(config, tempDir);
+        manager.save(config);
 
-        Path savedFile = tempDir.resolve("config.yaml");
-        assertThat(savedFile).exists();
+        Configuration reloaded = manager.load();
 
-        Configuration reloaded = ConfigurationLoader.load(savedFile);
         assertThat(reloaded.getPlatform().getActive()).isEqualTo("production");
         assertThat(reloaded.getOci().getRegistry()).isEqualTo("ghcr.io");
         assertThat(reloaded.getBuild().getContainer().getBase().getImage()).isEqualTo("eclipse-temurin");
@@ -108,8 +128,7 @@ class ConfigurationLoaderTest {
 
     @Test
     void shouldIgnoreUnknownFieldsInUserConfig() throws IOException {
-        Path userConfig = tempDir.resolve("config.yaml");
-        Files.writeString(userConfig, """
+        writeUserConfig("""
                 baseImage: "old-image:latest"
                 mavenCentralUrl: "https://old-url"
                 unknownField: true
@@ -117,7 +136,7 @@ class ConfigurationLoaderTest {
                   active: default
                 """);
 
-        Configuration config = ConfigurationLoader.load(userConfig);
+        Configuration config = manager.load();
 
         assertThat(config.getPlatform().getActive()).isEqualTo("default");
         assertThat(config.getBuild().getContainer().getBase().getImage()).isEqualTo("eclipse-temurin");
@@ -125,19 +144,15 @@ class ConfigurationLoaderTest {
 
     @Test
     void shouldHandleMalformedUserConfigGracefully() throws IOException {
-        Path userConfig = tempDir.resolve("config.yaml");
-        Files.writeString(userConfig, "not: valid: yaml: [[[");
+        writeUserConfig("not: valid: yaml: [[[");
 
-        Configuration config = ConfigurationLoader.load(userConfig);
-
-        assertThat(config.getPlatform()).isNotNull();
-        assertThat(config.getPlatform().getActive()).isEqualTo("default");
+        assertThatThrownBy(() -> manager.load())
+                .isInstanceOf(RuntimeException.class);
     }
 
     @Test
     void shouldOverrideContainerBaseImage() throws IOException {
-        Path userConfig = tempDir.resolve("config.yaml");
-        Files.writeString(userConfig, """
+        writeUserConfig("""
                 build:
                   container:
                     base:
@@ -145,7 +160,7 @@ class ConfigurationLoaderTest {
                       tag: "21-al2023-jdk"
                 """);
 
-        Configuration config = ConfigurationLoader.load(userConfig);
+        Configuration config = manager.load();
 
         assertThat(config.getBuild().getContainer().getBase().getImage()).isEqualTo("amazoncorretto");
         assertThat(config.getBuild().getContainer().getBase().getTag()).isEqualTo("21-al2023-jdk");
@@ -154,15 +169,14 @@ class ConfigurationLoaderTest {
 
     @Test
     void shouldOverrideOciArtifact() throws IOException {
-        Path userConfig = tempDir.resolve("config.yaml");
-        Files.writeString(userConfig, """
+        writeUserConfig("""
                 oci:
                   registry: "ghcr.io"
                   artifact:
                     name: "myorg/custom-descriptors"
                 """);
 
-        Configuration config = ConfigurationLoader.load(userConfig);
+        Configuration config = manager.load();
 
         assertThat(config.getOci().getRegistry()).isEqualTo("ghcr.io");
         assertThat(config.getOci().getArtifact().getName()).isEqualTo("myorg/custom-descriptors");
@@ -171,8 +185,7 @@ class ConfigurationLoaderTest {
 
     @Test
     void shouldPreserveRegistryCredentials() throws IOException {
-        Path userConfig = tempDir.resolve("config.yaml");
-        Files.writeString(userConfig, """
+        writeUserConfig("""
                 build:
                   container:
                     registry:
@@ -181,12 +194,18 @@ class ConfigurationLoaderTest {
                       password: "mytoken"
                 """);
 
-        Configuration config = ConfigurationLoader.load(userConfig);
+        Configuration config = manager.load();
 
         Registry registry = config.getBuild().getContainer().getRegistry();
         assertThat(registry).isNotNull();
         assertThat(registry.getUrl()).isEqualTo("ghcr.io");
         assertThat(registry.getUsername()).isEqualTo("myuser");
         assertThat(registry.getPassword()).isEqualTo("mytoken");
+    }
+
+    private void writeUserConfig(String content) throws IOException {
+        Path configDir = tempDir.resolve(".dbz");
+        Files.createDirectories(configDir);
+        Files.writeString(configDir.resolve("config.yaml"), content);
     }
 }
