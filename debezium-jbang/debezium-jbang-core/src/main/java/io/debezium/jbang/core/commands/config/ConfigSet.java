@@ -7,7 +7,7 @@ package io.debezium.jbang.core.commands.config;
 
 import java.util.LinkedHashMap;
 
-import io.debezium.jbang.configuration.ArtifactConfig;
+import io.debezium.jbang.configuration.Artifact;
 import io.debezium.jbang.configuration.Base;
 import io.debezium.jbang.configuration.Build;
 import io.debezium.jbang.configuration.Configuration;
@@ -169,10 +169,10 @@ public class ConfigSet extends DebeziumCommand {
         return config.getOci();
     }
 
-    private ArtifactConfig ensureArtifact(Configuration config) {
+    private Artifact ensureArtifact(Configuration config) {
         Oci oci = ensureOci(config);
         if (oci.getArtifact() == null) {
-            oci.setArtifact(new ArtifactConfig());
+            oci.setArtifact(new Artifact());
         }
         return oci.getArtifact();
     }

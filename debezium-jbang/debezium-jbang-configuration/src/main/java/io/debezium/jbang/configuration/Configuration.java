@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonMerge;
 public class Configuration {
 
     public static final String DEFAULT_PLATFORM_URL = "http://localhost:8080";
+    private static final String ENV_VARIABLE = "DEBEZIUM_PLATFORM_URL";
 
     @JsonMerge
     private Platform platform;
@@ -49,7 +50,7 @@ public class Configuration {
     }
 
     public URI getResolvedPlatform() {
-        String envUrl = System.getenv("DEBEZIUM_PLATFORM_URL");
+        String envUrl = System.getenv(ENV_VARIABLE);
         if (envUrl != null && !envUrl.isBlank()) {
             return URI.create(envUrl);
         }
