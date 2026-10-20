@@ -7,6 +7,7 @@ package io.debezium.jbang.configuration;
 
 import java.net.URI;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonMerge;
 
@@ -49,6 +50,7 @@ public class Configuration {
         this.oci = oci;
     }
 
+    @JsonIgnore
     public URI getResolvedPlatform() {
         String envUrl = System.getenv(ENV_VARIABLE);
         if (envUrl != null && !envUrl.isBlank()) {

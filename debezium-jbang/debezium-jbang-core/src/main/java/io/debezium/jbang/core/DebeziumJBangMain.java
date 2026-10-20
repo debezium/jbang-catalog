@@ -7,10 +7,11 @@ package io.debezium.jbang.core;
 
 import java.util.concurrent.Callable;
 
+import jakarta.inject.Inject;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import jakarta.inject.Inject;
 
 import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.ConfigurationManager;
@@ -95,6 +96,7 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
         catch (Exception e) {
             // ignore
         }
+        configurationManager.load();
 
         commandLine = new CommandLine(this, factory)
                 .addSubcommand("version", new CommandLine(new VersionCommand(this)))

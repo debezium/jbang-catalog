@@ -6,6 +6,7 @@
 package io.debezium.jbang.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonMerge;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -15,6 +16,7 @@ public class Container {
     private Base base;
 
     @JsonMerge
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Registry registry;
 
     public Base getBase() {
