@@ -15,7 +15,7 @@ public class Oci {
     private String registry;
 
     @JsonMerge
-    private ArtifactConfig artifact;
+    private Artifact artifact;
 
     public String getLocal() {
         return local;
@@ -33,11 +33,11 @@ public class Oci {
         this.registry = registry;
     }
 
-    public ArtifactConfig getArtifact() {
+    public Artifact getArtifact() {
         return artifact;
     }
 
-    public void setArtifact(ArtifactConfig artifact) {
+    public void setArtifact(Artifact artifact) {
         this.artifact = artifact;
     }
 }

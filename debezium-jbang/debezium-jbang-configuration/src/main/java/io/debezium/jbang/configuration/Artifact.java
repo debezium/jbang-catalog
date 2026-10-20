@@ -8,7 +8,7 @@ package io.debezium.jbang.configuration;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ArtifactConfig {
+public class Artifact {
 
     private String name;
     private String tag;

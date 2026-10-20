@@ -7,10 +7,13 @@ package io.debezium.jbang.core;
 
 import java.util.concurrent.Callable;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import jakarta.inject.Inject;
 
 import io.debezium.jbang.configuration.Configuration;
-import io.debezium.jbang.configuration.ConfigurationLoader;
+import io.debezium.jbang.configuration.ConfigurationManager;
 import io.debezium.jbang.core.commands.SwitchCommand;
 import io.debezium.jbang.core.commands.build.BuildCommand;
 import io.debezium.jbang.core.commands.build.PushCommand;
@@ -78,7 +81,11 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
 
     private Printer out = new Printer.SystemOutPrinter();
 
-    private final Configuration configuration = ConfigurationLoader.get();
+    private final ObjectMapper yamlMapper = new ObjectMapper(
+            new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
+
+    private final ConfigurationManager configurationManager = new ConfigurationManager(yamlMapper,
+            message -> out.println(message));
 
     public int run(String... args) {
         try {
@@ -156,10 +163,10 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
     }
 
     public Configuration configuration() {
-        return this.configuration;
+        return configurationManager.load();
     }
 
     public void save(Configuration configuration) {
-        ConfigurationLoader.save(configuration);
+        configurationManager.save(configuration);
     }
 }
