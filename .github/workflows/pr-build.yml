@@ -5,7 +5,7 @@ on:
       - main
 
 env:
-  MAVEN_FULL_BUILD_PROJECTS: ":debezium-jbang-core,:debezium-jbang-main,:debezium-jbang-testing,:debezium-jbang-catalog,:debezium-jbang-inventory"
+  MAVEN_FULL_BUILD_PROJECTS: ":debezium-jbang-configuration,:debezium-jbang-core,:debezium-jbang-main,:debezium-jbang-testing,:debezium-jbang-catalog,:debezium-jbang-inventory"
   DEBEZIUM_CORE_DEPENDENCIES: ":debezium-build-parent,:debezium-bom,:debezium-parent,support/checkstyle,support/ide-configs,support/revapi"
 
 
