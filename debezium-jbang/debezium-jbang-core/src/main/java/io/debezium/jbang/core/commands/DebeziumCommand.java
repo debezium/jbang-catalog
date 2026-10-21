@@ -7,6 +7,7 @@ package io.debezium.jbang.core.commands;
 
 import java.util.concurrent.Callable;
 
+import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.common.Printer;
 import io.debezium.jbang.core.util.StringUtil;
@@ -80,5 +81,13 @@ public abstract class DebeziumCommand implements Callable<Integer>, Printer {
                 }
             }
         }
+    }
+
+    public Configuration configuration() {
+        return getMain().configuration();
+    }
+
+    public void save(Configuration configuration) {
+        getMain().save(configuration);
     }
 }

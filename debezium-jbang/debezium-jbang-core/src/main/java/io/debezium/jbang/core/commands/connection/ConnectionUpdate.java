@@ -41,7 +41,7 @@ public class ConnectionUpdate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         ConnectionRequest request = yamlMapper.readValue(file, ConnectionRequest.class);
 
-        ConnectionService connectionService = platformFactory.connection();
+        ConnectionService connectionService = platformFactory.connection(configuration());
         Connection updated = ConnectionMapper.toDomain(connectionService.updateConnection(id, request));
 
         println("Connection " + updated.id() + " updated.");

@@ -26,7 +26,7 @@ public class TransformDelete extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        var transformService = platformFactory.transform();
+        var transformService = platformFactory.transform(configuration());
         transformService.deleteTransform(id);
 
         println("Transform " + id + " deleted.");

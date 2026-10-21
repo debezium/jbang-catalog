@@ -14,12 +14,12 @@ import com.google.cloud.tools.jib.api.Jib;
 import com.google.cloud.tools.jib.api.RegistryImage;
 import com.google.cloud.tools.jib.api.TarImage;
 
+import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.build.config.DbzConfig;
 import io.debezium.jbang.core.build.config.DbzConfigLoader;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.build.RegistryAuthResolver.RegistryAuth;
-import io.debezium.jbang.core.configuration.Configuration;
 
 import picocli.CommandLine;
 
@@ -62,12 +62,12 @@ public class PushCommand extends DebeziumCommand {
             return 1;
         }
 
-        ResolvedImage resolved = resolveImage(config, registryOverride, Configuration.load());
+        ResolvedImage resolved = resolveImage(config, registryOverride, configuration());
         String fullImageRef = buildFullImageRef(resolved.registry(), resolved.name(), resolved.tag());
 
         println("Pushing " + resolved.name() + ":" + resolved.tag() + " → " + (resolved.registry() != null ? resolved.registry() : "Docker Hub") + "...");
 
-        Optional<RegistryAuth> auth = RegistryAuthResolver.resolve(resolved.registry());
+        Optional<RegistryAuth> auth = RegistryAuthResolver.resolve(resolved.registry(), configuration());
         if (auth.isEmpty()) {
             println("No credentials found — attempting anonymous push...");
             println("  (If this fails, set DBZ_REGISTRY_USERNAME/DBZ_REGISTRY_PASSWORD or run 'docker login')");
@@ -106,9 +106,9 @@ public class PushCommand extends DebeziumCommand {
             }
         }
         // Fall back to global config registry if still not set
-        if (registry == null && globalConfig != null && globalConfig.getRegistry() != null
-                && globalConfig.getRegistry().getUrl() != null) {
-            registry = globalConfig.getRegistry().getUrl();
+        if (registry == null && globalConfig != null && globalConfig.getOci() != null
+                && globalConfig.getOci().getRegistry() != null) {
+            registry = globalConfig.getOci().getRegistry();
         }
         return new ResolvedImage(imageName, imageTag, registry);
     }

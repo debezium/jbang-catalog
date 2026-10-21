@@ -30,21 +30,19 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import io.debezium.jbang.core.configuration.Configuration;
+import io.debezium.jbang.configuration.Configuration;
 
 public class DistributionResolver {
 
-    private static final String DEFAULT_CENTRAL = "https://repo1.maven.org/maven2/";
     private static final String DIST_PATH = "io/debezium/debezium-server-dist";
     private static final String SOURCES_CLASSIFIER = "-sources.jar";
 
     private final Consumer<String> logger;
-    private final String central;
+    private final Configuration configuration;
 
-    public DistributionResolver(Consumer<String> logger) {
+    public DistributionResolver(Consumer<String> logger, Configuration configuration) {
         this.logger = logger;
-        String configured = Configuration.load().getMavenCentralUrl();
-        this.central = (configured != null && !configured.isBlank()) ? configured : DEFAULT_CENTRAL;
+        this.configuration = configuration;
     }
 
     public Path resolve(String version, List<String> activeProfiles, List<String> explicitArtifacts) throws Exception {
@@ -55,7 +53,7 @@ public class DistributionResolver {
         Files.createDirectories(srcAssembliesDir);
 
         // Download POM from Maven repository
-        String pomUrl = central + DIST_PATH + "/" + version
+        String pomUrl = configuration.getBuild().getMaven().getRemote() + DIST_PATH + "/" + version
                 + "/debezium-server-dist-" + version + ".pom";
         logger.accept("Fetching POM from " + pomUrl);
 
@@ -92,10 +90,7 @@ public class DistributionResolver {
         command.add(profiles);
         command.add("-DskipTests");
         command.add("--no-transfer-progress");
-        String localRepo = Configuration.load().getMavenLocalRepo();
-        if (localRepo != null && !localRepo.isBlank()) {
-            command.add("-Dmaven.repo.local=" + localRepo);
-        }
+        command.add("-Dmaven.repo.local=" + configuration.getBuild().getMaven().getLocal());
 
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(projectDir.toFile());
@@ -214,15 +209,15 @@ public class DistributionResolver {
         Element goals = doc.createElement("goals");
         appendTextElement(doc, goals, "goal", "single");
         execution.appendChild(goals);
-        Element configuration = doc.createElement("configuration");
-        appendTextElement(doc, configuration, "appendAssemblyId", "false");
-        appendTextElement(doc, configuration, "attach", "false");
+        Element configurationElement = doc.createElement("configuration");
+        appendTextElement(doc, configurationElement, "appendAssemblyId", "false");
+        appendTextElement(doc, configurationElement, "attach", "false");
         Element descriptors = doc.createElement("descriptors");
         appendTextElement(doc, descriptors, "descriptor",
                 "src/main/resources/assemblies/server-distribution.xml");
-        configuration.appendChild(descriptors);
-        appendTextElement(doc, configuration, "tarLongFileMode", "posix");
-        execution.appendChild(configuration);
+        configurationElement.appendChild(descriptors);
+        appendTextElement(doc, configurationElement, "tarLongFileMode", "posix");
+        execution.appendChild(configurationElement);
         executions.appendChild(execution);
         plugin.appendChild(executions);
         return plugin;
@@ -279,7 +274,7 @@ public class DistributionResolver {
     }
 
     private void extractFromSourcesJar(String version, Path assembliesDir, Path distroDir) throws IOException {
-        String sourcesUrl = central + DIST_PATH + "/" + version
+        String sourcesUrl = configuration.getBuild().getMaven().getRemote() + DIST_PATH + "/" + version
                 + "/debezium-server-dist-" + version + SOURCES_CLASSIFIER;
         logger.accept("Fetching assembly descriptor and distro scripts from " + sourcesUrl);
         try (InputStream is = URI.create(sourcesUrl).toURL().openStream();

@@ -29,7 +29,7 @@ public class SourceGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        SourceService sourceService = platformFactory.source();
+        SourceService sourceService = platformFactory.source(configuration());
         Source s = SourceMapper.toDomain(sourceService.getSource(id));
 
         println("""

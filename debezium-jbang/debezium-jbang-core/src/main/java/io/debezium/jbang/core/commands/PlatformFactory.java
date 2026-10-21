@@ -6,15 +6,12 @@
 package io.debezium.jbang.core.commands;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.debezium.jbang.core.configuration.Configuration;
-import io.debezium.jbang.core.configuration.Environment;
-import io.debezium.jbang.core.configuration.Platform;
+import io.debezium.jbang.configuration.Configuration;
+import io.debezium.jbang.configuration.Platform;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 import io.debezium.jbang.core.platform.catalog.service.HttpCatalogService;
 import io.debezium.jbang.core.platform.connection.service.ConnectionService;
@@ -27,59 +24,53 @@ import io.debezium.jbang.core.platform.source.service.HttpSourceService;
 import io.debezium.jbang.core.platform.source.service.SourceService;
 import io.debezium.jbang.core.platform.transform.service.HttpTransformService;
 import io.debezium.jbang.core.platform.transform.service.TransformService;
-import io.debezium.jbang.core.util.ConfigUtil;
 
 import picocli.CommandLine;
 
 public class PlatformFactory {
 
     @CommandLine.Option(names = { "--platform-address" }, description = "Debezium Platform API URL (overrides ~/.dbz/config.yaml, default: "
-            + ConfigUtil.DEFAULT_PLATFORM_URL + ")", defaultValue = "${DEBEZIUM_PLATFORM_URL:-}")
+            + Configuration.DEFAULT_PLATFORM_URL + ")", defaultValue = "${DEBEZIUM_PLATFORM_URL:-}")
     private String platformAddress;
 
-    public PlatformService pipeline() {
-        return new HttpPlatformService(resolvedApiUrl());
+    public PlatformService pipeline(Configuration configuration) {
+        return new HttpPlatformService(resolvedApiUrl(configuration));
     }
 
-    public SourceService source() {
-        return new HttpSourceService(resolvedApiUrl());
+    public SourceService source(Configuration configuration) {
+        return new HttpSourceService(resolvedApiUrl(configuration));
     }
 
-    public DestinationService destination() {
-        return new HttpDestinationService(resolvedApiUrl());
+    public DestinationService destination(Configuration configuration) {
+        return new HttpDestinationService(resolvedApiUrl(configuration));
     }
 
-    public ConnectionService connection() {
-        return new HttpConnectionService(resolvedApiUrl());
+    public ConnectionService connection(Configuration configuration) {
+        return new HttpConnectionService(resolvedApiUrl(configuration));
     }
 
-    public TransformService transform() {
-        return new HttpTransformService(resolvedApiUrl());
+    public TransformService transform(Configuration configuration) {
+        return new HttpTransformService(resolvedApiUrl(configuration));
     }
 
-    public CatalogService catalog() {
-        return new HttpCatalogService(resolvedApiUrl());
+    public CatalogService catalog(Configuration configuration) {
+        return new HttpCatalogService(resolvedApiUrl(configuration));
     }
 
-    public boolean isPlatformConfigured() {
+    public boolean isPlatformConfigured(Configuration configuration) {
         if (platformAddress != null && !platformAddress.isBlank()) {
             return true;
         }
-        Configuration config = Configuration.load();
-        Map<String, Environment> envs = config.getEnvironments();
-        if (envs != null && !envs.isEmpty()) {
-            return true;
-        }
-        List<Platform> platforms = config.getPlatforms();
-        return platforms != null && !platforms.isEmpty();
+        Platform platform = configuration.getPlatform();
+        return platform != null && platform.hasEnvironments();
     }
 
-    public String getPlatformVersion() {
-        if (!isPlatformConfigured()) {
+    public String getPlatformVersion(Configuration configuration) {
+        if (!isPlatformConfigured(configuration)) {
             return null;
         }
         try {
-            String catalogJson = catalog().getCatalog(null);
+            String catalogJson = catalog(configuration).getCatalog(null);
             if (catalogJson != null) {
                 JsonNode root = new ObjectMapper().readTree(catalogJson);
                 JsonNode build = root.path("build");
@@ -122,10 +113,10 @@ public class PlatformFactory {
         return null;
     }
 
-    public URI resolvedApiUrl() {
+    public URI resolvedApiUrl(Configuration configuration) {
         if (platformAddress != null && !platformAddress.isBlank()) {
             return URI.create(platformAddress);
         }
-        return URI.create(ConfigUtil.getPlatformUrl());
+        return configuration.getResolvedPlatform();
     }
 }

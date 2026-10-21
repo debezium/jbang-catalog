@@ -9,6 +9,12 @@ import java.util.concurrent.Callable;
 
 import jakarta.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+
+import io.debezium.jbang.configuration.Configuration;
+import io.debezium.jbang.configuration.ConfigurationManager;
 import io.debezium.jbang.core.commands.SwitchCommand;
 import io.debezium.jbang.core.commands.build.BuildCommand;
 import io.debezium.jbang.core.commands.build.PushCommand;
@@ -59,7 +65,6 @@ import io.debezium.jbang.core.commands.validate.ValidateCommand;
 import io.debezium.jbang.core.commands.version.DebeziumVersionProvider;
 import io.debezium.jbang.core.commands.version.VersionCommand;
 import io.debezium.jbang.core.common.Printer;
-import io.debezium.jbang.core.configuration.Configuration;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 
@@ -77,6 +82,12 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
 
     private Printer out = new Printer.SystemOutPrinter();
 
+    private final ObjectMapper yamlMapper = new ObjectMapper(
+            new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
+
+    private final ConfigurationManager configurationManager = new ConfigurationManager(yamlMapper,
+            message -> out.println(message));
+
     public int run(String... args) {
         try {
             long pid = ProcessHandle.current().pid();
@@ -85,8 +96,7 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
         catch (Exception e) {
             // ignore
         }
-
-        Configuration.initializeIfAbsent();
+        configurationManager.load();
 
         commandLine = new CommandLine(this, factory)
                 .addSubcommand("version", new CommandLine(new VersionCommand(this)))
@@ -152,5 +162,13 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
 
     public Printer getOut() {
         return out;
+    }
+
+    public Configuration configuration() {
+        return configurationManager.load();
+    }
+
+    public void save(Configuration configuration) {
+        configurationManager.save(configuration);
     }
 }

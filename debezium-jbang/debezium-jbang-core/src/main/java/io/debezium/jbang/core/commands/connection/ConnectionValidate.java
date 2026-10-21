@@ -37,7 +37,7 @@ public class ConnectionValidate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         ConnectionRequest request = yamlMapper.readValue(file, ConnectionRequest.class);
 
-        ConnectionService connectionService = platformFactory.connection();
+        ConnectionService connectionService = platformFactory.connection(configuration());
         ConnectionValidationResult result = connectionService.validateConnection(request);
 
         if (result.valid()) {

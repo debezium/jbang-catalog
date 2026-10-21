@@ -36,7 +36,7 @@ public class PipelineSignal extends DebeziumCommand {
     @Override
     public Integer doCall() throws Exception {
         String signalId = UUID.randomUUID().toString();
-        platformFactory.pipeline().sendSignal(id, new SignalRequest(signalId, type, data, null));
+        platformFactory.pipeline(configuration()).sendSignal(id, new SignalRequest(signalId, type, data, null));
         println("Signal '" + type + "' sent to pipeline " + id + ".");
         return 0;
     }

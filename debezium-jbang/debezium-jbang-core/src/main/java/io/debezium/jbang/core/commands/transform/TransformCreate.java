@@ -38,7 +38,7 @@ public class TransformCreate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         TransformRequest request = yamlMapper.readValue(file, TransformRequest.class);
 
-        TransformService transformService = platformFactory.transform();
+        TransformService transformService = platformFactory.transform(configuration());
         Transform created = TransformMapper.toDomain(transformService.createTransform(request));
 
         println("Transform created with id: " + created.id());

@@ -38,7 +38,7 @@ public class SourceCreate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         SourceRequest request = yamlMapper.readValue(file, SourceRequest.class);
 
-        SourceService sourceService = platformFactory.source();
+        SourceService sourceService = platformFactory.source(configuration());
         Source created = SourceMapper.toDomain(sourceService.createSource(request));
 
         println("Source created with id: " + created.id());

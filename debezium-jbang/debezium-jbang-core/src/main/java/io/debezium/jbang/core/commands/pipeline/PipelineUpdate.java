@@ -41,7 +41,7 @@ public class PipelineUpdate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         PipelineRequest request = yamlMapper.readValue(file, PipelineRequest.class);
 
-        PlatformService platformService = platformFactory.pipeline();
+        PlatformService platformService = platformFactory.pipeline(configuration());
         Pipeline updated = PipelineMapper.toDomain(platformService.updatePipeline(id, request));
 
         println("Pipeline " + updated.id() + " updated.");

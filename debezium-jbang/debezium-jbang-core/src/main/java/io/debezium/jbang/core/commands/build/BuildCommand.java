@@ -20,19 +20,19 @@ import com.google.cloud.tools.jib.api.JibContainerBuilder;
 import com.google.cloud.tools.jib.api.TarImage;
 import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
 
+import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.connectors.ConnectorRegistry;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.build.config.DbzConfig;
 import io.debezium.jbang.core.build.config.DbzConfigLoader;
 import io.debezium.jbang.core.commands.DebeziumCommand;
-import io.debezium.jbang.core.configuration.Configuration;
 
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "build", description = "Build a Debezium Server distribution from dbz.yaml", mixinStandardHelpOptions = true, sortOptions = false)
 public class BuildCommand extends DebeziumCommand {
 
-    private static final String DEFAULT_BASE_IMAGE = "eclipse-temurin:21-jre";
+    private static final String DEFAULT_BASE_IMAGE = "eclipse-temurin:21-jre"; // fallback only if config loading fails
     private static final AbsoluteUnixPath APP_DIR = AbsoluteUnixPath.get("/app");
 
     @CommandLine.Option(names = { "--config" }, description = "Path to dbz.yaml (default: ./dbz.yaml)", defaultValue = "dbz.yaml")
@@ -119,7 +119,7 @@ public class BuildCommand extends DebeziumCommand {
 
         Path zipPath;
         try {
-            zipPath = new DistributionResolver(this::println).resolve(version, activeProfiles, explicitArtifacts);
+            zipPath = new DistributionResolver(this::println, configuration()).resolve(version, activeProfiles, explicitArtifacts);
         }
         catch (Exception e) {
             println("ERROR: Failed to resolve distribution: " + e.getMessage());
@@ -166,8 +166,16 @@ public class BuildCommand extends DebeziumCommand {
             }
         }
 
-        String cliBaseImage = Configuration.load().getBaseImage();
-        String baseImage = cliBaseImage != null ? cliBaseImage : DEFAULT_BASE_IMAGE;
+        Configuration globalConfig = configuration();
+        String baseImage = DEFAULT_BASE_IMAGE;
+        if (globalConfig.getBuild() != null && globalConfig.getBuild().getContainer() != null
+                && globalConfig.getBuild().getContainer().getBase() != null) {
+            String img = globalConfig.getBuild().getContainer().getBase().getImage();
+            String tag = globalConfig.getBuild().getContainer().getBase().getTag();
+            if (img != null && !img.isBlank()) {
+                baseImage = tag != null && !tag.isBlank() ? img + ":" + tag : img;
+            }
+        }
 
         Path tarOutput = Path.of("target", "debezium-server.tar");
 

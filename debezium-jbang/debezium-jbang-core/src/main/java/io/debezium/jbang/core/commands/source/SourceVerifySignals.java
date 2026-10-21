@@ -31,7 +31,7 @@ public class SourceVerifySignals extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        SignalVerificationResult result = platformFactory.source().verifySignals(new SignalCollectionVerifyRequest(connectionId, table));
+        SignalVerificationResult result = platformFactory.source(configuration()).verifySignals(new SignalCollectionVerifyRequest(connectionId, table));
         if (result.exists()) {
             String msg = "Signal collection table is available" + (table != null ? " (" + table + ")" : "") + ".";
             if (result.message() != null) {

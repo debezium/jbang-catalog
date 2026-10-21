@@ -41,7 +41,7 @@ public class SourceUpdate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         SourceRequest request = yamlMapper.readValue(file, SourceRequest.class);
 
-        SourceService sourceService = platformFactory.source();
+        SourceService sourceService = platformFactory.source(configuration());
         Source updated = SourceMapper.toDomain(sourceService.updateSource(id, request));
 
         println("Source " + updated.id() + " updated.");

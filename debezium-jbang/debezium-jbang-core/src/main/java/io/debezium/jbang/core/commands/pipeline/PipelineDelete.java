@@ -26,7 +26,7 @@ public class PipelineDelete extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        var platformService = platformFactory.pipeline();
+        var platformService = platformFactory.pipeline(configuration());
         platformService.deletePipeline(id);
 
         println("Pipeline " + id + " deleted.");

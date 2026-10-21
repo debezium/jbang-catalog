@@ -26,7 +26,7 @@ public class SourceDelete extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        var sourceService = platformFactory.source();
+        var sourceService = platformFactory.source(configuration());
         sourceService.deleteSource(id);
 
         println("Source " + id + " deleted.");

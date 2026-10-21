@@ -5,15 +5,12 @@
  */
 package io.debezium.jbang.core.commands.config;
 
-import java.util.List;
 import java.util.Map;
 
+import io.debezium.jbang.configuration.Environment;
+import io.debezium.jbang.configuration.Platform;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
-import io.debezium.jbang.core.configuration.Configuration;
-import io.debezium.jbang.core.configuration.Environment;
-import io.debezium.jbang.core.configuration.Platform;
-import io.debezium.jbang.core.util.ConfigUtil;
 
 import picocli.CommandLine;
 
@@ -26,40 +23,49 @@ public class ConfigGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        Configuration config = Configuration.load();
-        Map<String, Environment> environments = config.getEnvironments();
+        Platform platform = configuration().getPlatform();
 
-        if (environments != null && !environments.isEmpty()) {
-            String active = config.getDefaultEnv();
+        if (platform != null && platform.hasEnvironments()) {
+            String active = platform.getActive();
             printf("%-20s %-40s %s%n", "NAME", "URL", "ACTIVE");
             printf("%-20s %-40s %s%n", "----", "---", "------");
-            for (Map.Entry<String, Environment> entry : environments.entrySet()) {
+            for (Map.Entry<String, Environment> env : platform.getEnvironments().entrySet()) {
                 printf("%-20s %-40s %s%n",
-                        entry.getKey(),
-                        entry.getValue().getUrl() != null ? entry.getValue().getUrl() : "",
-                        entry.getKey().equals(active) ? "*" : "");
+                        env.getKey(),
+                        env.getValue().getUrl() != null ? env.getValue().getUrl() : "",
+                        env.getKey().equals(active) ? "*" : "");
             }
-            println("Effective platform URL: " + ConfigUtil.getPlatformUrl());
-            return 0;
+            println("Effective platform URL: " + configuration().getResolvedPlatform().toString());
+        }
+        else {
+            println("No environments configured.");
+            println("Default platform URL: " + configuration().getResolvedPlatform().toString());
         }
 
-        // Legacy platforms list format
-        List<Platform> platforms = config.getPlatforms();
-        if (platforms != null && !platforms.isEmpty()) {
-            printf("%-20s %-40s %s%n", "NAME", "ADDRESS", "DEFAULT");
-            printf("%-20s %-40s %s%n", "----", "-------", "-------");
-            for (Platform p : platforms) {
-                printf("%-20s %-40s %s%n",
-                        p.getName() != null ? p.getName() : "",
-                        p.getAddress() != null ? p.getAddress() : "",
-                        p.isDefault() ? "*" : "");
+        if (configuration().getBuild() != null) {
+            println("");
+            println("Build:");
+            if (configuration().getBuild().getContainer() != null && configuration().getBuild().getContainer().getBase() != null) {
+                println("  container.base.image: " + configuration().getBuild().getContainer().getBase().getImage());
+                println("  container.base.tag:   " + configuration().getBuild().getContainer().getBase().getTag());
             }
-            println("Effective platform URL: " + ConfigUtil.getPlatformUrl());
-            return 0;
+            if (configuration().getBuild().getMaven() != null) {
+                println("  maven.local:          " + configuration().getBuild().getMaven().getLocal());
+                println("  maven.remote:         " + configuration().getBuild().getMaven().getRemote());
+            }
         }
 
-        println("No environments configured.");
-        println("Default platform URL: " + ConfigUtil.getPlatformUrl());
+        if (configuration().getOci() != null) {
+            println("");
+            println("OCI:");
+            println("  local:                " + configuration().getOci().getLocal());
+            println("  registry:             " + configuration().getOci().getRegistry());
+            if (configuration().getOci().getArtifact() != null) {
+                println("  artifact.name:        " + configuration().getOci().getArtifact().getName());
+                println("  artifact.tag:         " + configuration().getOci().getArtifact().getTag());
+            }
+        }
+
         return 0;
     }
 }

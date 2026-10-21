@@ -38,7 +38,7 @@ public class DestinationCreate extends DebeziumCommand {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         DestinationRequest request = yamlMapper.readValue(file, DestinationRequest.class);
 
-        DestinationService destinationService = platformFactory.destination();
+        DestinationService destinationService = platformFactory.destination(configuration());
         Destination created = DestinationMapper.toDomain(destinationService.createDestination(request));
 
         println("Destination created with id: " + created.id());

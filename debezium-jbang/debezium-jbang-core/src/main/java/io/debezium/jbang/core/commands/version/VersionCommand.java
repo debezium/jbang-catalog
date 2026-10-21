@@ -33,7 +33,7 @@ public class VersionCommand extends DebeziumCommand {
             println("Debezium CLI version: " + version.getCore());
         }
 
-        String platformVersion = platformFactory.getPlatformVersion();
+        String platformVersion = platformFactory.getPlatformVersion(getMain().configuration());
         if (platformVersion != null) {
             println("Debezium Platform version: " + platformVersion);
         }

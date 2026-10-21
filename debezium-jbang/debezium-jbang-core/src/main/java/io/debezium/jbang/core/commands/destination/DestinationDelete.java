@@ -26,7 +26,7 @@ public class DestinationDelete extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        var destinationService = platformFactory.destination();
+        var destinationService = platformFactory.destination(configuration());
         destinationService.deleteDestination(id);
 
         println("Destination " + id + " deleted.");
