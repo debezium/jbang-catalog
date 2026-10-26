@@ -18,9 +18,23 @@ import java.util.zip.ZipInputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import io.debezium.jbang.configuration.Configuration;
+
 class BuildCommandNetworkIT {
 
     private static final String TEST_VERSION = "3.7.0.Alpha2";
+
+    private static Configuration loadDefaultConfiguration() {
+        try (InputStream is = BuildCommandNetworkIT.class.getClassLoader().getResourceAsStream("config-defaults.yaml")) {
+            return new ObjectMapper(new YAMLFactory()).readValue(is, Configuration.class);
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private BuildCommand silentCommand(String configPath) {
         BuildCommand cmd = new BuildCommand(null) {
@@ -38,6 +52,11 @@ class BuildCommandNetworkIT {
 
             @Override
             public void printf(String format, Object... args) {
+            }
+
+            @Override
+            public Configuration configuration() {
+                return loadDefaultConfiguration();
             }
         };
         cmd.configPath = configPath;
