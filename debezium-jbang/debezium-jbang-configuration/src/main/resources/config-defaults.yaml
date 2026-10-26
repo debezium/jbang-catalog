@@ -10,7 +10,7 @@ build:
       tag: "21-jre"
   maven:
     local: "~/.m2"
-    remote: "https://repo1.maven.org/maven2"
+    remote: "https://repo1.maven.org/maven2/"
 oci:
   local: "~/.dbz/oci"
   registry: "quay.io"

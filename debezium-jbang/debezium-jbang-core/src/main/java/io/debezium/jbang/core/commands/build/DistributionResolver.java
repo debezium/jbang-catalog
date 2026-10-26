@@ -53,7 +53,8 @@ public class DistributionResolver {
         Files.createDirectories(srcAssembliesDir);
 
         // Download POM from Maven repository
-        String pomUrl = configuration.getBuild().getMaven().getRemote() + DIST_PATH + "/" + version
+        String repoBase = ensureTrailingSlash(configuration.getBuild().getMaven().getRemote());
+        String pomUrl = repoBase + DIST_PATH + "/" + version
                 + "/debezium-server-dist-" + version + ".pom";
         logger.accept("Fetching POM from " + pomUrl);
 
@@ -90,7 +91,13 @@ public class DistributionResolver {
         command.add(profiles);
         command.add("-DskipTests");
         command.add("--no-transfer-progress");
-        command.add("-Dmaven.repo.local=" + configuration.getBuild().getMaven().getLocal());
+        String localRepo = configuration.getBuild().getMaven().getLocal();
+        if (localRepo != null && !localRepo.isBlank()) {
+            if (localRepo.startsWith("~")) {
+                localRepo = System.getProperty("user.home") + localRepo.substring(1);
+            }
+            command.add("-Dmaven.repo.local=" + localRepo);
+        }
 
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(projectDir.toFile());
@@ -274,7 +281,7 @@ public class DistributionResolver {
     }
 
     private void extractFromSourcesJar(String version, Path assembliesDir, Path distroDir) throws IOException {
-        String sourcesUrl = configuration.getBuild().getMaven().getRemote() + DIST_PATH + "/" + version
+        String sourcesUrl = ensureTrailingSlash(configuration.getBuild().getMaven().getRemote()) + DIST_PATH + "/" + version
                 + "/debezium-server-dist-" + version + SOURCES_CLASSIFIER;
         logger.accept("Fetching assembly descriptor and distro scripts from " + sourcesUrl);
         try (InputStream is = URI.create(sourcesUrl).toURL().openStream();
@@ -299,6 +306,10 @@ public class DistributionResolver {
                 zis.closeEntry();
             }
         }
+    }
+
+    private static String ensureTrailingSlash(String url) {
+        return url.endsWith("/") ? url : url + "/";
     }
 
     private static String findMaven() {

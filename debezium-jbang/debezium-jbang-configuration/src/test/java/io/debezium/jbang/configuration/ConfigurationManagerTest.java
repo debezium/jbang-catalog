@@ -59,7 +59,7 @@ class ConfigurationManagerTest {
         assertThat(config.getBuild().getContainer().getBase().getTag()).isEqualTo("21-jre");
         assertThat(config.getBuild().getContainer().getRegistry()).isNull();
         assertThat(config.getBuild().getMaven().getLocal()).isEqualTo("~/.m2");
-        assertThat(config.getBuild().getMaven().getRemote()).isEqualTo("https://repo1.maven.org/maven2");
+        assertThat(config.getBuild().getMaven().getRemote()).isEqualTo("https://repo1.maven.org/maven2/");
 
         assertThat(config.getOci()).isNotNull();
         assertThat(config.getOci().getLocal()).isEqualTo("~/.dbz/oci");
@@ -164,7 +164,7 @@ class ConfigurationManagerTest {
 
         assertThat(config.getBuild().getContainer().getBase().getImage()).isEqualTo("amazoncorretto");
         assertThat(config.getBuild().getContainer().getBase().getTag()).isEqualTo("21-al2023-jdk");
-        assertThat(config.getBuild().getMaven().getRemote()).isEqualTo("https://repo1.maven.org/maven2");
+        assertThat(config.getBuild().getMaven().getRemote()).isEqualTo("https://repo1.maven.org/maven2/");
     }
 
     @Test
