@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.debezium.jbang</groupId>
         <artifactId>debezium-jbang</artifactId>
-        <version>3.7.1.Final</version>
+        <version>3.7.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>debezium-jbang-core</artifactId>
