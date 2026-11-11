@@ -31,6 +31,10 @@ for db in "${DATABASES[@]}"; do
         exit 1
     fi
 done
+# Expose the resolved version to later GitHub Actions steps.
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    printf 'version=%s\n' "$latest_common_version" >> "$GITHUB_OUTPUT"
+fi
 APPLY="${APPLY:-0}"
 
 update_dependency() {
