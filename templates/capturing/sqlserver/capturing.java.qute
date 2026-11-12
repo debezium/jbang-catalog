@@ -20,7 +20,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class {baseName} {
 
     @Capturing()
-    public void capture(CapturingEvent<SourceRecord> event) throws Exception {
+    public void capture(CapturingEvent<SourceRecord, SourceRecord> event) throws Exception {
         Log.infof("capturing event %s", event.record());
     }
 }
