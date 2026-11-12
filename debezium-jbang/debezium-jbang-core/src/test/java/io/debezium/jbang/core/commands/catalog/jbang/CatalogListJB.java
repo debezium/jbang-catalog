@@ -17,15 +17,15 @@ class CatalogListJB extends AbstractCatalogJB {
     void shouldListCatalog() {
         String output = executeCatalog("list");
 
-        assertThat(output).contains("TYPE").contains("CLASS").contains("source");
+        assertThat(output).contains("TYPE").contains("CLASS").contains("source-connector");
     }
 
     @Test
     @DisplayName("should list catalog components filtered by type as table")
     void shouldListCatalogByType() {
-        String output = executeCatalog("list --type source");
+        String output = executeCatalog("list --type source-connector");
 
-        assertThat(output).contains("TYPE").contains("CLASS").contains("source");
+        assertThat(output).contains("TYPE").contains("CLASS").contains("source-connector");
     }
 
     @Test

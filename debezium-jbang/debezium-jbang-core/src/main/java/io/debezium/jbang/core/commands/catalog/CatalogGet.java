@@ -36,7 +36,7 @@ public class CatalogGet extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::println);
+        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln);
         ComponentDescriptor descriptor = catalogService.getComponentDescriptor(type, componentClass);
         if ("json".equalsIgnoreCase(format)) {
             println(new ObjectMapper().writeValueAsString(descriptor));

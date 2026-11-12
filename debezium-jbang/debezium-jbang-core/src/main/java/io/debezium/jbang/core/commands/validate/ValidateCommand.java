@@ -114,7 +114,7 @@ public class ValidateCommand extends DebeziumCommand {
                 : null;
         if (errors.isEmpty() && connectorClass != null) {
             try {
-                CatalogService catalogService = OciCatalogLoader.load(configuration(), this::println);
+                CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln);
                 ComponentDescriptor descriptor = catalogService.getComponentDescriptor("source-connector", connectorClass);
                 Map<String, Object> sourceConfig = config.source().config() != null ? config.source().config() : Map.of();
                 for (Property p : Objects.requireNonNullElse(descriptor.properties(), List.<Property> of())) {

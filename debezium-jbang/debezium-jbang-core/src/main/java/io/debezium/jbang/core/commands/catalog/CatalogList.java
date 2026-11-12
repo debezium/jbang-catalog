@@ -35,7 +35,7 @@ public class CatalogList extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::println);
+        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln);
         String json = catalogService.getCatalog(type);
         if ("json".equalsIgnoreCase(format)) {
             println(json);
