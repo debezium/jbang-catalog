@@ -44,7 +44,7 @@ public final class OciCatalogLoader {
             downloader.download(registry, name, tag, cacheDir);
         }
         catch (RuntimeException e) {
-            if (!isPopulated(cacheDir)) {
+            if (!isCached(cacheDir)) {
                 throw e;
             }
             logger.accept("Could not refresh catalog descriptors (" + e.getMessage() + "); using cached copy at " + cacheDir);
@@ -59,7 +59,7 @@ public final class OciCatalogLoader {
                 : Path.of(path);
     }
 
-    private static boolean isPopulated(Path cacheDir) {
+    private static boolean isCached(Path cacheDir) {
         if (!Files.isDirectory(cacheDir)) {
             return false;
         }
