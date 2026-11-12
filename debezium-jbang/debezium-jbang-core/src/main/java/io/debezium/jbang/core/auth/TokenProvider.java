@@ -58,6 +58,19 @@ public final class TokenProvider {
             return null;
         }
 
+        return refresh(key, credential).accessToken();
+    }
+
+    /**
+     * Refreshes the session stored for this address and keeps everything the server sent back.
+     * <p>
+     * Every refresh has to go through here. With refresh token rotation the old token stops working
+     * as soon as the new one is issued, so a caller that refreshed on its own and dropped the
+     * replacement would leave a dead token on disk — and the next command would be logged out.
+     */
+    public static TokenSet refresh(String platformAddress, StoredCredential credential) {
+        String key = CredentialStore.normalizeKey(platformAddress);
+
         TokenSet refreshed = TokenEndpoint.refresh(
                 endpointsFor(credential.issuer()),
                 credential.clientId(),
@@ -65,7 +78,7 @@ public final class TokenProvider {
 
         persistRotatedRefreshToken(key, credential, refreshed);
         ACCESS_TOKENS.put(key, refreshed);
-        return refreshed.accessToken();
+        return refreshed;
     }
 
     /**

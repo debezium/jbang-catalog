@@ -14,7 +14,6 @@ import io.debezium.jbang.core.auth.AuthException;
 import io.debezium.jbang.core.auth.CredentialStore;
 import io.debezium.jbang.core.auth.Jwt;
 import io.debezium.jbang.core.auth.StoredCredential;
-import io.debezium.jbang.core.auth.TokenEndpoint;
 import io.debezium.jbang.core.auth.TokenProvider;
 import io.debezium.jbang.core.auth.TokenSet;
 import io.debezium.jbang.core.commands.DebeziumCommand;
@@ -73,10 +72,9 @@ public class AuthStatus extends DebeziumCommand {
 
         boolean healthy = true;
         try {
-            TokenSet refreshed = TokenEndpoint.refresh(
-                    TokenProvider.endpointsFor(credential.issuer()),
-                    credential.clientId(),
-                    credential.refreshToken());
+            // Through TokenProvider rather than the token endpoint directly, so that a refresh token
+            // rotated by this check is saved instead of being thrown away.
+            TokenSet refreshed = TokenProvider.refresh(platformAddress, credential);
             Jwt accessToken = Jwt.parse(refreshed.accessToken());
             println("  Live:       yes — access token valid for " + remaining(refreshed) + ", as " + accessToken.subjectLabel());
         }

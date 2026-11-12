@@ -33,7 +33,9 @@ public final class OidcDiscovery {
 
         OIDCProviderMetadata metadata;
         try {
-            metadata = OIDCProviderMetadata.resolve(new Issuer(base));
+            // The one-argument overload has no timeouts at all, so an issuer that accepts the
+            // connection and then says nothing would hang every command that needs the endpoints.
+            metadata = OIDCProviderMetadata.resolve(new Issuer(base), OidcHttp.CONNECT_TIMEOUT_MS, OidcHttp.READ_TIMEOUT_MS);
         }
         catch (GeneralException | IOException e) {
             throw new AuthException("Cannot read the OpenID configuration for " + base

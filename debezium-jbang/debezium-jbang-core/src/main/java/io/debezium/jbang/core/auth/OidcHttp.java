@@ -22,8 +22,8 @@ import net.minidev.json.JSONObject;
  */
 final class OidcHttp {
 
-    private static final int CONNECT_TIMEOUT_MS = 10_000;
-    private static final int READ_TIMEOUT_MS = 30_000;
+    static final int CONNECT_TIMEOUT_MS = 10_000;
+    static final int READ_TIMEOUT_MS = 30_000;
 
     private OidcHttp() {
     }
