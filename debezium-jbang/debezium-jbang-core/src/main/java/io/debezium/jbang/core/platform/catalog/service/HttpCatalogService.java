@@ -9,6 +9,7 @@ import java.net.URI;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.debezium.jbang.core.auth.BearerTokenFilter;
 import io.debezium.jbang.core.platform.catalog.api.CatalogAPI;
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
@@ -23,6 +24,7 @@ public class HttpCatalogService implements CatalogService {
         this.catalogAPI = QuarkusRestClientBuilder.newBuilder()
                 .baseUri(platformAddress)
                 .httpClientOptions(new HttpClientOptions())
+                .register(new BearerTokenFilter(platformAddress.toString()))
                 .build(CatalogAPI.class);
     }
 

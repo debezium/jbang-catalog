@@ -8,6 +8,7 @@ package io.debezium.jbang.core.platform.pipeline.service;
 import java.net.URI;
 import java.util.List;
 
+import io.debezium.jbang.core.auth.BearerTokenFilter;
 import io.debezium.jbang.core.platform.pipeline.api.PipelineAPI;
 import io.debezium.jbang.core.platform.pipeline.dto.PipelineRequest;
 import io.debezium.jbang.core.platform.pipeline.dto.PipelineResponse;
@@ -23,6 +24,7 @@ public class HttpPlatformService implements PlatformService {
         this.pipelineAPI = QuarkusRestClientBuilder.newBuilder()
                 .baseUri(platformAddress)
                 .httpClientOptions(new HttpClientOptions())
+                .register(new BearerTokenFilter(platformAddress.toString()))
                 .build(PipelineAPI.class);
 
     }

@@ -16,6 +16,7 @@
 //DEPS io.debezium.jbang:debezium-jbang-core:${debezium.jbang.version:3.8.0-SNAPSHOT}
 //DEPS io.quarkus:quarkus-arc
 //DEPS io.quarkus:quarkus-rest-client-jackson
+//DEPS com.nimbusds:oauth2-oidc-sdk:11.23
 //DEPS io.smallrye:jandex:3.5.3
 //Q:CONFIG quarkus.banner.enabled=false
 //Q:CONFIG quarkus.log.level=WARN

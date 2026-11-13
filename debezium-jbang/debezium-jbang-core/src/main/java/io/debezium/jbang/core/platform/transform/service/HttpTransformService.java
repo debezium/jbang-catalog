@@ -8,6 +8,7 @@ package io.debezium.jbang.core.platform.transform.service;
 import java.net.URI;
 import java.util.List;
 
+import io.debezium.jbang.core.auth.BearerTokenFilter;
 import io.debezium.jbang.core.platform.transform.api.TransformAPI;
 import io.debezium.jbang.core.platform.transform.dto.TransformRequest;
 import io.debezium.jbang.core.platform.transform.dto.TransformResponse;
@@ -22,6 +23,7 @@ public class HttpTransformService implements TransformService {
         this.transformAPI = QuarkusRestClientBuilder.newBuilder()
                 .baseUri(platformAddress)
                 .httpClientOptions(new HttpClientOptions())
+                .register(new BearerTokenFilter(platformAddress.toString()))
                 .build(TransformAPI.class);
     }
 

@@ -109,6 +109,17 @@
             <artifactId>xz</artifactId>
             <version>1.9</version>
         </dependency>
+        <!-- Version managed by quarkus-bom. -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+        </dependency>
+        <!-- Not in quarkus-bom, so the version is explicit here and in debezium-jbang-main/dist. -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>oauth2-oidc-sdk</artifactId>
+            <version>${version.nimbus.oauth2.sdk}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
