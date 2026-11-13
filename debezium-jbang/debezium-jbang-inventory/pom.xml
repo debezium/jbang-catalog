@@ -18,7 +18,7 @@
         <dependency>
             <groupId>io.quarkiverse.oras</groupId>
             <artifactId>quarkus-oras</artifactId>
-            <version>0.6.5</version>
+            <version>0.8.2</version>
         </dependency>
     </dependencies>
 

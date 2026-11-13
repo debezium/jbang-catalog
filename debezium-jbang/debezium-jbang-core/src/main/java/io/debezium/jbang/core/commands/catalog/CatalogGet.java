@@ -16,6 +16,7 @@ import io.debezium.jbang.core.platform.catalog.dto.Property;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 
+import land.oras.Registry;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "get", description = "Get descriptor for a specific catalog component", sortOptions = false)
@@ -30,13 +31,16 @@ public class CatalogGet extends DebeziumCommand {
     @CommandLine.Option(names = { "--format" }, description = "Output format: table (default) or json", defaultValue = "table")
     String format;
 
-    public CatalogGet(DebeziumJBangMain main) {
+    private final Registry registry;
+
+    public CatalogGet(DebeziumJBangMain main, Registry registry) {
         super(main);
+        this.registry = registry;
     }
 
     @Override
     public Integer doCall() throws Exception {
-        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln);
+        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln, registry);
         ComponentDescriptor descriptor = catalogService.getComponentDescriptor(type, componentClass);
         if ("json".equalsIgnoreCase(format)) {
             println(new ObjectMapper().writeValueAsString(descriptor));

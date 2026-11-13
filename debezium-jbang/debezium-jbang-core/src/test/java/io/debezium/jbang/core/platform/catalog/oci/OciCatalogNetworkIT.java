@@ -17,6 +17,8 @@ import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.Oci;
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
 
+import land.oras.Registry;
+
 /**
  * Network integration test that pulls the real descriptor artifact from quay.io. Gated by
  * {@code -DskipNetworkITs=false} (see failsafe config) because it requires outbound network access.
@@ -41,7 +43,7 @@ class OciCatalogNetworkIT {
 
     @Test
     void shouldPullDescriptorsFromQuayAndReadPostgresDescriptor() {
-        OciCatalogService service = OciCatalogLoader.load(configuration(), System.out::println);
+        OciCatalogService service = OciCatalogLoader.load(configuration(), System.out::println, Registry.builder().defaults().build());
 
         String catalog = service.getCatalog("source-connector");
         assertThat(catalog).contains("io.debezium.connector.postgresql.PostgresConnector");

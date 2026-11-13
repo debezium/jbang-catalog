@@ -19,6 +19,12 @@ import land.oras.Registry;
  */
 public class OrasArtifactDownloader implements OciArtifactDownloader {
 
+    private final Registry registry;
+
+    public OrasArtifactDownloader(Registry registry) {
+        this.registry = registry;
+    }
+
     @Override
     public void download(String registry, String repository, String reference, Path targetDir) {
         try {
@@ -27,7 +33,7 @@ public class OrasArtifactDownloader implements OciArtifactDownloader {
         catch (IOException e) {
             throw new UncheckedIOException("Failed to create download directory " + targetDir, e);
         }
-        Registry oras = Registry.builder().defaults().build();
-        oras.pullArtifact(ContainerRef.parse(registry + "/" + repository + ":" + reference), targetDir, true);
+
+        this.registry.pullArtifact(ContainerRef.parse(registry + "/" + repository + ":" + reference), targetDir, true);
     }
 }

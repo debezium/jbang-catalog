@@ -20,7 +20,9 @@
 //Q:CONFIG quarkus.banner.enabled=false
 //Q:CONFIG quarkus.log.level=WARN
 //Q:CONFIG quarkus.index-dependency.core.group-id=io.debezium.jbang
+//Q:CONFIG quarkus.index-dependency.oras.group-id=io.quarkiverse.oras
 //Q:CONFIG quarkus.index-dependency.core.artifact-id=debezium-jbang-core
+//Q:CONFIG quarkus.index-dependency.oras.artifact-id=quarkus-oras
 
 package main;
 

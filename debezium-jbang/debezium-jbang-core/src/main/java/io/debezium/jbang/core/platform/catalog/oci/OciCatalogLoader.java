@@ -15,6 +15,8 @@ import io.debezium.jbang.configuration.Oci;
 import io.debezium.jbang.inventory.oci.OciArtifactDownloader;
 import io.debezium.jbang.inventory.oci.OrasArtifactDownloader;
 
+import land.oras.Registry;
+
 /**
  * Reads the component descriptor OCI artifact coordinates from configuration, downloads it into a local
  * directory via an {@link OciArtifactDownloader} and exposes it as an {@link OciCatalogService}.
@@ -28,8 +30,8 @@ public final class OciCatalogLoader {
     private OciCatalogLoader() {
     }
 
-    public static OciCatalogService load(Configuration configuration, Consumer<String> logger) {
-        return load(configuration, logger, new OrasArtifactDownloader());
+    public static OciCatalogService load(Configuration configuration, Consumer<String> logger, Registry registry) {
+        return load(configuration, logger, new OrasArtifactDownloader(registry));
     }
 
     static OciCatalogService load(Configuration configuration, Consumer<String> logger, OciArtifactDownloader downloader) {

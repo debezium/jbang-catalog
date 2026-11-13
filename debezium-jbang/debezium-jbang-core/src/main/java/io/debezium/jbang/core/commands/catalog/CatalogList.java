@@ -18,10 +18,13 @@ import io.debezium.jbang.core.platform.catalog.dto.ComponentEntry;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 
+import land.oras.Registry;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "list", description = "List available catalog components for the current platform version", sortOptions = false)
 public class CatalogList extends DebeziumCommand {
+
+    private final Registry registry;
 
     @CommandLine.Option(names = { "--type" }, description = "Filter by component type (e.g. source-connector, sink-connector, transformation)")
     String type;
@@ -29,13 +32,14 @@ public class CatalogList extends DebeziumCommand {
     @CommandLine.Option(names = { "--format" }, description = "Output format: table (default) or json", defaultValue = "table")
     String format;
 
-    public CatalogList(DebeziumJBangMain main) {
+    public CatalogList(DebeziumJBangMain main, Registry registry) {
         super(main);
+        this.registry = registry;
     }
 
     @Override
     public Integer doCall() throws Exception {
-        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln);
+        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln, registry);
         String json = catalogService.getCatalog(type);
         if ("json".equalsIgnoreCase(format)) {
             println(json);

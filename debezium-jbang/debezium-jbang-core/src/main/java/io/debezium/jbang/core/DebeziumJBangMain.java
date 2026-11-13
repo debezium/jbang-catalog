@@ -7,6 +7,7 @@ package io.debezium.jbang.core;
 
 import java.util.concurrent.Callable;
 
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,9 +66,11 @@ import io.debezium.jbang.core.commands.validate.ValidateCommand;
 import io.debezium.jbang.core.commands.version.DebeziumVersionProvider;
 import io.debezium.jbang.core.commands.version.VersionCommand;
 import io.debezium.jbang.core.common.Printer;
+import io.quarkiverse.oras.runtime.OrasRegistry;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 
+import land.oras.Registry;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 
@@ -79,6 +82,9 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
 
     @Inject
     CommandLine.IFactory factory;
+
+    @OrasRegistry("default")
+    Instance<Registry> registry;
 
     private Printer out = new Printer.SystemOutPrinter();
 
@@ -141,10 +147,10 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
                         .addSubcommand("update", new CommandLine(new TransformUpdate(this)))
                         .addSubcommand("delete", new CommandLine(new TransformDelete(this))))
                 .addSubcommand("catalog", new CommandLine(new CatalogCommand(this))
-                        .addSubcommand("list", new CommandLine(new CatalogList(this)))
-                        .addSubcommand("get", new CommandLine(new CatalogGet(this))))
+                        .addSubcommand("list", new CommandLine(new CatalogList(this, registry.get())))
+                        .addSubcommand("get", new CommandLine(new CatalogGet(this, registry.get()))))
                 .addSubcommand("init", new CommandLine(new InitCommand(this)))
-                .addSubcommand("validate", new CommandLine(new ValidateCommand(this)))
+                .addSubcommand("validate", new CommandLine(new ValidateCommand(this, registry.get())))
                 .addSubcommand("build", new CommandLine(new BuildCommand(this)))
                 .addSubcommand("push", new CommandLine(new PushCommand(this)))
                 .addSubcommand(new CommandLine(new AutoComplete.GenerateCompletion()));

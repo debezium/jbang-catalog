@@ -24,6 +24,7 @@ import io.debezium.jbang.core.platform.catalog.dto.Property;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 
+import land.oras.Registry;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "validate", description = "Validate a dbz.yaml project file", mixinStandardHelpOptions = true, sortOptions = false)
@@ -38,11 +39,14 @@ public class ValidateCommand extends DebeziumCommand {
             new RequiredFieldValidator(),
             new EnumValueValidator());
 
+    private final Registry registry;
+
     @CommandLine.Option(names = { "--config" }, description = "Path to dbz.yaml (default: ./dbz.yaml)", defaultValue = "dbz.yaml")
     String configPath;
 
-    public ValidateCommand(DebeziumJBangMain main) {
+    public ValidateCommand(DebeziumJBangMain main, Registry registry) {
         super(main);
+        this.registry = registry;
     }
 
     @Override
@@ -114,7 +118,7 @@ public class ValidateCommand extends DebeziumCommand {
                 : null;
         if (errors.isEmpty() && connectorClass != null) {
             try {
-                CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln);
+                CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln, registry);
                 ComponentDescriptor descriptor = catalogService.getComponentDescriptor("source-connector", connectorClass);
                 Map<String, Object> sourceConfig = config.source().config() != null ? config.source().config() : Map.of();
                 for (Property p : Objects.requireNonNullElse(descriptor.properties(), List.<Property> of())) {
