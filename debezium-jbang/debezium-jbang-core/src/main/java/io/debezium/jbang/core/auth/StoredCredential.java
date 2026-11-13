@@ -5,6 +5,11 @@
  */
 package io.debezium.jbang.core.auth;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 /**
  * What is persisted for one platform address.
  * <p>
@@ -17,10 +22,13 @@ package io.debezium.jbang.core.auth;
  * {@code Refresh} means it will not, which is worth seeing in {@code auth status} before a demo
  * rather than discovering the next morning.
  */
-public record StoredCredential(String issuer,
-        String clientId,
-        String refreshToken,
-        String subject,
-        String refreshTokenType,
-        String obtainedAt) {
+@RegisterForReflection
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record StoredCredential(
+        @JsonProperty("issuer") String issuer,
+        @JsonProperty("clientId") String clientId,
+        @JsonProperty("refreshToken") String refreshToken,
+        @JsonProperty("subject") String subject,
+        @JsonProperty("refreshTokenType") String refreshTokenType,
+        @JsonProperty("obtainedAt") String obtainedAt) {
 }

@@ -121,7 +121,7 @@ public class AuthLogin extends DebeziumCommand {
             return null;
         }
         try {
-            return Jwt.parse(tokens.refreshToken()).type();
+            return Jwt.parse(tokens.refreshToken()).type().orElse(null);
         }
         catch (AuthException e) {
             // Opaque refresh tokens are legitimate on other providers; nothing to report.

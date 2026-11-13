@@ -18,17 +18,17 @@ public class JwtTest {
     public void shouldReadClaimsFromThePayload() {
         Jwt jwt = Jwt.parse(JwtFixtures.accessToken("someone@example.com", Instant.now().plusSeconds(300)));
 
-        assertThat(jwt.claim("sub")).isEqualTo("3f9a-user");
-        assertThat(jwt.claim("email")).isEqualTo("someone@example.com");
+        assertThat(jwt.claim("sub")).contains("3f9a-user");
+        assertThat(jwt.claim("email")).contains("someone@example.com");
         assertThat(jwt.subjectLabel()).isEqualTo("someone@example.com");
     }
 
     @Test
-    public void shouldReturnNullForAnAbsentClaim() {
+    public void shouldReturnEmptyForAnAbsentClaim() {
         Jwt jwt = Jwt.parse(JwtFixtures.refreshToken("Offline"));
 
-        assertThat(jwt.claim("email")).isNull();
-        assertThat(jwt.expiresAt()).isNull();
+        assertThat(jwt.claim("email")).isEmpty();
+        assertThat(jwt.expiresAt()).isEmpty();
     }
 
     /**
@@ -37,8 +37,8 @@ public class JwtTest {
      */
     @Test
     public void shouldExposeTheRefreshTokenType() {
-        assertThat(Jwt.parse(JwtFixtures.refreshToken("Offline")).type()).isEqualTo("Offline");
-        assertThat(Jwt.parse(JwtFixtures.refreshToken("Refresh")).type()).isEqualTo("Refresh");
+        assertThat(Jwt.parse(JwtFixtures.refreshToken("Offline")).type()).contains("Offline");
+        assertThat(Jwt.parse(JwtFixtures.refreshToken("Refresh")).type()).contains("Refresh");
     }
 
     @Test
@@ -47,7 +47,7 @@ public class JwtTest {
 
         Jwt jwt = Jwt.parse(JwtFixtures.accessToken("someone@example.com", expiry));
 
-        assertThat(jwt.expiresAt()).isEqualTo(Instant.ofEpochSecond(expiry.getEpochSecond()));
+        assertThat(jwt.expiresAt()).contains(Instant.ofEpochSecond(expiry.getEpochSecond()));
     }
 
     @Test

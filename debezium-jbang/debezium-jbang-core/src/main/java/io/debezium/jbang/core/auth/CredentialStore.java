@@ -14,11 +14,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.debezium.jbang.core.util.CommandLineUtil;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
  * Refresh tokens on disk, at {@code ~/.dbz/credentials.json}, mode 0600.
@@ -64,25 +65,13 @@ public final class CredentialStore {
     }
 
     public static Map<String, StoredCredential> loadAll() {
-        Map<String, StoredCredential> credentials = new LinkedHashMap<>();
         Path file = path();
-        if (!Files.exists(file)) {
-            return credentials;
-        }
         try {
-            JsonNode root = MAPPER.readTree(file.toFile());
-            JsonNode entries = root.path("credentials");
-            entries.fieldNames().forEachRemaining(address -> {
-                JsonNode entry = entries.get(address);
-                credentials.put(address, new StoredCredential(
-                        text(entry, "issuer"),
-                        text(entry, "clientId"),
-                        text(entry, "refreshToken"),
-                        text(entry, "subject"),
-                        text(entry, "refreshTokenType"),
-                        text(entry, "obtainedAt")));
-            });
-            return credentials;
+            // An empty file is what a write interrupted right after creating it leaves behind.
+            if (!Files.exists(file) || Files.size(file) == 0) {
+                return new LinkedHashMap<>();
+            }
+            return MAPPER.readValue(file.toFile(), CredentialsFile.class).credentials();
         }
         catch (IOException e) {
             throw new AuthException("Cannot read " + file + ": " + e.getMessage(), e);
@@ -106,18 +95,6 @@ public final class CredentialStore {
     }
 
     private static void writeAll(Map<String, StoredCredential> credentials) {
-        ObjectNode root = MAPPER.createObjectNode();
-        ObjectNode entries = root.putObject("credentials");
-        credentials.forEach((address, credential) -> {
-            ObjectNode entry = entries.putObject(address);
-            entry.put("issuer", credential.issuer());
-            entry.put("clientId", credential.clientId());
-            entry.put("refreshToken", credential.refreshToken());
-            entry.put("subject", credential.subject());
-            entry.put("refreshTokenType", credential.refreshTokenType());
-            entry.put("obtainedAt", credential.obtainedAt());
-        });
-
         Path file = path();
         try {
             Path directory = file.getParent();
@@ -132,7 +109,7 @@ public final class CredentialStore {
                 Files.createFile(file);
             }
             trySetPermissions(file, FILE_MODE);
-            MAPPER.writerWithDefaultPrettyPrinter().writeValue(file.toFile(), root);
+            MAPPER.writerWithDefaultPrettyPrinter().writeValue(file.toFile(), new CredentialsFile(credentials));
             trySetPermissions(file, FILE_MODE);
         }
         catch (IOException e) {
@@ -150,8 +127,15 @@ public final class CredentialStore {
         }
     }
 
-    private static String text(JsonNode node, String field) {
-        JsonNode value = node.get(field);
-        return value == null || value.isNull() ? null : value.asText();
+    /** The file as a whole: credentials keyed by platform address. */
+    @RegisterForReflection
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record CredentialsFile(@JsonProperty("credentials") Map<String, StoredCredential> credentials) {
+
+        CredentialsFile {
+            if (credentials == null) {
+                credentials = new LinkedHashMap<>();
+            }
+        }
     }
 }

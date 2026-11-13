@@ -118,4 +118,62 @@ public class CredentialStoreTest {
         assertThat(CredentialStore.loadAll()).isEmpty();
         assertThat(CredentialStore.find("https://api.example.com")).isNull();
     }
+
+    /** A write interrupted right after creating the file leaves it empty; that must not lock the user out. */
+    @Test
+    public void shouldReturnNoCredentialsWhenTheFileIsEmpty() throws Exception {
+        writeCredentialsFile("");
+
+        assertThat(CredentialStore.loadAll()).isEmpty();
+
+        CredentialStore.save("https://api.example.com", credential("refresh-1"));
+        assertThat(CredentialStore.find("https://api.example.com").refreshToken()).isEqualTo("refresh-1");
+    }
+
+    @Test
+    public void shouldReturnNoCredentialsWhenTheFileHasNoCredentialsField() throws Exception {
+        writeCredentialsFile("{}");
+
+        assertThat(CredentialStore.loadAll()).isEmpty();
+
+        CredentialStore.save("https://api.example.com", credential("refresh-1"));
+        assertThat(CredentialStore.loadAll()).hasSize(1);
+    }
+
+    /** A file written by a newer CLI must still load in this one. */
+    @Test
+    public void shouldIgnoreUnknownFieldsAtTheRoot() throws Exception {
+        writeCredentialsFile("""
+                {
+                  "version": 2,
+                  "credentials": {
+                    "https://api.example.com": { "issuer": "https://auth.example.com/realms/dmp", "refreshToken": "refresh-1" }
+                  }
+                }
+                """);
+
+        assertThat(CredentialStore.find("https://api.example.com").refreshToken()).isEqualTo("refresh-1");
+    }
+
+    @Test
+    public void shouldIgnoreUnknownFieldsInACredential() throws Exception {
+        writeCredentialsFile("""
+                {
+                  "credentials": {
+                    "https://api.example.com": { "refreshToken": "refresh-1", "audience": "conductor" }
+                  }
+                }
+                """);
+
+        StoredCredential loaded = CredentialStore.find("https://api.example.com");
+
+        assertThat(loaded.refreshToken()).isEqualTo("refresh-1");
+        assertThat(loaded.issuer()).isNull();
+    }
+
+    private static void writeCredentialsFile(String content) throws Exception {
+        Path file = CredentialStore.path();
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, content);
+    }
 }

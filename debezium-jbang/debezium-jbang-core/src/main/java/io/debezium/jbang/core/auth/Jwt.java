@@ -8,6 +8,7 @@ package io.debezium.jbang.core.auth;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
@@ -20,6 +21,10 @@ import com.nimbusds.jwt.JWTParser;
  * to know when to refresh proactively.
  */
 public final class Jwt {
+
+    private static final String TYPE = "typ";
+    private static final String EMAIL = "email";
+    private static final String PREFERRED_USERNAME = "preferred_username";
 
     private final JWTClaimsSet claims;
 
@@ -39,21 +44,20 @@ public final class Jwt {
         }
     }
 
-    /** Null-safe: returns null rather than throwing, since every claim here is optional. */
-    public String claim(String name) {
+    /** Empty rather than throwing, since every claim read here is optional. */
+    public Optional<String> claim(String name) {
         try {
-            return claims.getStringClaim(name);
+            return Optional.ofNullable(claims.getStringClaim(name));
         }
         catch (ParseException e) {
             // Present but not a string. For the identity and type claims read here that is the same
             // situation as absent, and not worth failing a status display over.
-            return null;
+            return Optional.empty();
         }
     }
 
-    public Instant expiresAt() {
-        Date expiry = claims.getExpirationTime();
-        return expiry == null ? null : expiry.toInstant();
+    public Optional<Instant> expiresAt() {
+        return Optional.ofNullable(claims.getExpirationTime()).map(Date::toInstant);
     }
 
     /**
@@ -61,17 +65,14 @@ public final class Jwt {
      * {@code Refresh}. Only an {@code Offline} token survives the realm's SSO idle timeout, so this
      * is what proves {@code offline_access} was actually granted rather than merely requested.
      */
-    public String type() {
-        return claim("typ");
+    public Optional<String> type() {
+        return claim(TYPE);
     }
 
-    /** Best available human identity, in descending order of usefulness. */
+    /** Best available human identity, in descending order of usefulness. Null when the token names nobody. */
     public String subjectLabel() {
-        String email = claim("email");
-        if (email != null) {
-            return email;
-        }
-        String username = claim("preferred_username");
-        return username != null ? username : claims.getSubject();
+        return claim(EMAIL)
+                .or(() -> claim(PREFERRED_USERNAME))
+                .orElseGet(claims::getSubject);
     }
 }
