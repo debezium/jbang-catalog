@@ -1,0 +1,118 @@
+name: Update Debezium Capturing Versions
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-and-update:
+    name: Check and Update Capturing Versions
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.DEBEZIUM_GH_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.DEBEZIUM_GH_TOKEN }}
+
+      - name: Update capturing template versions
+        id: update
+        run: |
+          APPLY=1 bash scripts/update-capturing-versions.sh
+
+          if git diff --quiet -- \
+            templates/capturing/mysql/capturing.java.qute \
+            templates/capturing/mongodb/capturing.java.qute \
+            templates/capturing/postgres/capturing.java.qute \
+            templates/capturing/sqlserver/capturing.java.qute \
+            templates/capturing/mariadb/capturing.java.qute \
+            templates/capturing/mysql/docker-compose.yaml \
+            templates/capturing/mariadb/docker-compose.yaml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No capturing template updates are needed."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check existing pull requests and stale branches
+        id: branch
+        if: steps.update.outputs.changed == 'true'
+        env:
+          VERSION: ${{ steps.update.outputs.version }}
+        run: |
+          BRANCH="debezium-update/${VERSION}"
+          echo "name=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+          OPEN_PR=$(gh pr list --state open --head "$BRANCH" --json number --jq 'length')
+          MERGED_PR=$(gh pr list --state merged --head "$BRANCH" --json number --jq 'length')
+
+          if [[ "$OPEN_PR" -gt 0 ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "An open PR already exists for ${VERSION}."
+            exit 0
+          fi
+
+          if [[ "$MERGED_PR" -gt 0 ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "A PR for ${VERSION} has already been merged."
+            exit 0
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+          ENCODED_BRANCH="${BRANCH//\//%2F}"
+          if gh api "repos/${GITHUB_REPOSITORY}/branches/${ENCODED_BRANCH}" >/dev/null 2>&1; then
+            echo "Deleting stale branch ${BRANCH}."
+            gh api --method DELETE \
+              "repos/${GITHUB_REPOSITORY}/git/refs/heads/${ENCODED_BRANCH}"
+          fi
+
+      - name: Create version update branch and commit
+        if: steps.update.outputs.changed == 'true' && steps.branch.outputs.skip == 'false'
+        env:
+          VERSION: ${{ steps.update.outputs.version }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          git config user.name "debezium-builder"
+          git config user.email "debezium-builder@users.noreply.github.com"
+
+          git checkout -b "$BRANCH"
+
+          git add \
+            templates/capturing/mysql/capturing.java.qute \
+            templates/capturing/mongodb/capturing.java.qute \
+            templates/capturing/postgres/capturing.java.qute \
+            templates/capturing/sqlserver/capturing.java.qute \
+            templates/capturing/mariadb/capturing.java.qute \
+            templates/capturing/mysql/docker-compose.yaml \
+            templates/capturing/mariadb/docker-compose.yaml
+
+          if git diff --cached --quiet; then
+            echo "No staged changes to commit."
+            exit 0
+          fi
+
+          git commit -s -m "[release] Updated capturing templates to Debezium ${VERSION}"
+          git push origin "$BRANCH"
+
+      - name: Create pull request
+        if: steps.update.outputs.changed == 'true' && steps.branch.outputs.skip == 'false'
+        env:
+          VERSION: ${{ steps.update.outputs.version }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "[release] Update capturing templates to Debezium ${VERSION}" \
+            --body "Updates the five Debezium Quarkus extension versions to ${VERSION} and updates the available MySQL and MariaDB example image tags.
+
+          Generated automatically by the capturing version update workflow."
