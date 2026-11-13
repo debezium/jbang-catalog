@@ -5,65 +5,83 @@
  */
 package io.debezium.jbang.core.commands.catalog.nativebuild;
 
-import java.time.Duration;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.containers.wait.strategy.Wait;
+import org.junit.jupiter.api.BeforeAll;
 
 import io.debezium.jbang.test.suite.NativeTestPicoCliCommand;
 
 abstract class AbstractCatalogIT extends NativeTestPicoCliCommand {
 
-    static final String MANIFEST_JSON = "{\"components\":{\"source\":{\"io.debezium.connector.postgresql.PostgresConnector\":{}}}}";
-    static final String DESCRIPTOR_JSON = "{\"className\":\"io.debezium.connector.postgresql.PostgresConnector\",\"type\":\"source\",\"displayName\":\"PostgreSQL\"}";
+    static final String MANIFEST_JSON = """
+            {
+              "schemaVersion": 1,
+              "build": { "version": "3.8.0.Final" },
+              "components": {
+                "source-connector": [
+                  { "class": "io.debezium.connector.postgresql.PostgresConnector", "name": "Debezium PostgreSQL Connector", "description": "Captures row-level changes from a PostgreSQL database in near real-time.", "descriptor": "source-connector/io.debezium.connector.postgresql.PostgresConnector.json" }
+                ]
+              }
+            }
+            """;
 
-    static final Network NETWORK = Network.newNetwork();
+    static final String DESCRIPTOR_JSON = """
+            {
+              "name": "Debezium PostgreSQL Connector",
+              "type": "source-connector",
+              "version": "3.8.0.Final",
+              "metadata": {
+                "description": "Captures row-level changes from a PostgreSQL database in near real-time."
+              },
+              "properties": [
+                {
+                  "name": "database.hostname",
+                  "type": "string",
+                  "required": true,
+                  "display": {
+                    "label": "Hostname",
+                    "description": "Resolvable hostname or IP address of the database server.",
+                    "group": "Connection",
+                    "importance": "high"
+                  }
+                },
+                {
+                  "name": "database.port",
+                  "type": "number",
+                  "default": "5432",
+                  "display": {
+                    "label": "Port",
+                    "description": "Port of the database server.",
+                    "group": "Connection",
+                    "importance": "high"
+                  }
+                },
+                {
+                  "name": "database.user",
+                  "type": "string",
+                  "required": true,
+                  "display": {
+                    "label": "User",
+                    "description": "Name of the database user.",
+                    "group": "Connection",
+                    "importance": "high"
+                  }
+                }
+              ]
+            }
+            """;
 
-    static final GenericContainer<?> POSTGRES = new GenericContainer<>("postgres:15")
-            .withNetwork(NETWORK)
-            .withNetworkAliases("postgres")
-            .withEnv("POSTGRES_DB", "conductor")
-            .withEnv("POSTGRES_USER", "conductor")
-            .withEnv("POSTGRES_PASSWORD", "conductor")
-            .waitingFor(Wait.forLogMessage(".*database system is ready to accept connections.*", 2)
-                    .withStartupTimeout(Duration.ofSeconds(60)));
-
-    static final GenericContainer<?> CONDUCTOR;
-
-    static {
-        POSTGRES.start();
-        CONDUCTOR = new GenericContainer<>("quay.io/debezium/platform-conductor:nightly")
-                .withNetwork(NETWORK)
-                .withEnv("CONDUCTOR_WATCHER_ENABLED", "false")
-                .withEnv("QUARKUS_DATASOURCE_JDBC_URL", "jdbc:postgresql://postgres:5432/conductor")
-                .withEnv("QUARKUS_DATASOURCE_USERNAME", "conductor")
-                .withEnv("QUARKUS_DATASOURCE_PASSWORD", "conductor")
-                .withExposedPorts(8080)
-                .waitingFor(Wait.forLogMessage(".*started in.*", 1)
-                        .withStartupTimeout(Duration.ofMinutes(2)));
-        CONDUCTOR.start();
-        seedDescriptors();
-    }
-
-    private static void seedDescriptors() {
-        try {
-            String seedScript = "APP_VERSION=$(ls /debezium-platform-conductor/app/*.jar | sed 's/.*conductor-//;s/\\.jar//') && " +
-                    "mkdir -p /opt/descriptors/$APP_VERSION/source && " +
-                    "printf '%s' '" + MANIFEST_JSON + "' > /opt/descriptors/$APP_VERSION/manifest.json && " +
-                    "printf '%s' '" + DESCRIPTOR_JSON + "' > /opt/descriptors/$APP_VERSION/source/io.debezium.connector.postgresql.PostgresConnector.json";
-            CONDUCTOR.execInContainer("sh", "-c", seedScript);
-        }
-        catch (Exception e) {
-            throw new RuntimeException("Failed to seed catalog descriptor files into conductor container", e);
-        }
-    }
-
-    protected String apiUrl() {
-        return "http://localhost:" + CONDUCTOR.getMappedPort(8080);
+    @BeforeAll
+    static void seedDescriptors() throws IOException {
+        Path cacheRoot = Path.of(System.getProperty("user.home"), ".dbz", "oci", "3.8.0.Final");
+        Files.createDirectories(cacheRoot.resolve("source-connector"));
+        Files.writeString(cacheRoot.resolve("manifest.json"), MANIFEST_JSON);
+        Files.writeString(cacheRoot.resolve("source-connector").resolve("io.debezium.connector.postgresql.PostgresConnector.json"), DESCRIPTOR_JSON);
     }
 
     protected String executeCatalog(String subCommand) {
-        return execute("catalog " + subCommand + " --platform-address " + apiUrl());
+        return execute("catalog " + subCommand);
     }
 }

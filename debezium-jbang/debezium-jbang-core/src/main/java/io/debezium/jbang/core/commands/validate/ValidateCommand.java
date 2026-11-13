@@ -19,11 +19,12 @@ import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.build.config.DbzConfig;
 import io.debezium.jbang.core.build.config.DbzConfigLoader;
 import io.debezium.jbang.core.commands.DebeziumCommand;
-import io.debezium.jbang.core.commands.PlatformFactory;
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
 import io.debezium.jbang.core.platform.catalog.dto.Property;
+import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 
+import land.oras.Registry;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "validate", description = "Validate a dbz.yaml project file", mixinStandardHelpOptions = true, sortOptions = false)
@@ -38,14 +39,14 @@ public class ValidateCommand extends DebeziumCommand {
             new RequiredFieldValidator(),
             new EnumValueValidator());
 
+    private final Registry registry;
+
     @CommandLine.Option(names = { "--config" }, description = "Path to dbz.yaml (default: ./dbz.yaml)", defaultValue = "dbz.yaml")
     String configPath;
 
-    @CommandLine.Mixin
-    PlatformFactory platformFactory;
-
-    public ValidateCommand(DebeziumJBangMain main) {
+    public ValidateCommand(DebeziumJBangMain main, Registry registry) {
         super(main);
+        this.registry = registry;
     }
 
     @Override
@@ -117,7 +118,7 @@ public class ValidateCommand extends DebeziumCommand {
                 : null;
         if (errors.isEmpty() && connectorClass != null) {
             try {
-                CatalogService catalogService = platformFactory.catalog(configuration());
+                CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln, registry);
                 ComponentDescriptor descriptor = catalogService.getComponentDescriptor("source-connector", connectorClass);
                 Map<String, Object> sourceConfig = config.source().config() != null ? config.source().config() : Map.of();
                 for (Property p : Objects.requireNonNullElse(descriptor.properties(), List.<Property> of())) {
@@ -125,8 +126,8 @@ public class ValidateCommand extends DebeziumCommand {
                 }
             }
             catch (Exception e) {
-                println("Warning: Could not reach the conductor for connector config validation: " + e.getMessage());
-                println("  Start the conductor and re-run 'debezium validate' for full config validation.");
+                println("Warning: Could not load the component catalog for connector config validation: " + e.getMessage());
+                println("  Ensure network access to the descriptor registry (or a running platform) and re-run 'debezium validate'.");
             }
         }
 

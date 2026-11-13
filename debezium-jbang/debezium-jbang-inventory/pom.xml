@@ -12,4 +12,14 @@
     <packaging>jar</packaging>
     <name>Debezium JBang Connector Inventory</name>
 
+    <dependencies>
+        <!-- ORAS Java SDK (via the Quarkus extension) for downloading component descriptor OCI
+             artifacts, mirroring the Debezium Platform conductor. Provides native-image support. -->
+        <dependency>
+            <groupId>io.quarkiverse.oras</groupId>
+            <artifactId>quarkus-oras</artifactId>
+            <version>0.8.2</version>
+        </dependency>
+    </dependencies>
+
 </project>

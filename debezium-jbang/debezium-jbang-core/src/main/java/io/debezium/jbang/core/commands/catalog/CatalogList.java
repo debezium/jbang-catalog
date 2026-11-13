@@ -13,31 +13,33 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
-import io.debezium.jbang.core.commands.PlatformFactory;
 import io.debezium.jbang.core.platform.catalog.dto.CatalogManifest;
+import io.debezium.jbang.core.platform.catalog.dto.ComponentEntry;
+import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 
+import land.oras.Registry;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "list", description = "List available catalog components for the current platform version", sortOptions = false)
 public class CatalogList extends DebeziumCommand {
 
-    @CommandLine.Option(names = { "--type" }, description = "Filter by component type (e.g. source, destination)")
+    private final Registry registry;
+
+    @CommandLine.Option(names = { "--type" }, description = "Filter by component type (e.g. source-connector, sink-connector, transformation)")
     String type;
 
     @CommandLine.Option(names = { "--format" }, description = "Output format: table (default) or json", defaultValue = "table")
     String format;
 
-    @CommandLine.Mixin
-    PlatformFactory platformFactory;
-
-    public CatalogList(DebeziumJBangMain main) {
+    public CatalogList(DebeziumJBangMain main, Registry registry) {
         super(main);
+        this.registry = registry;
     }
 
     @Override
     public Integer doCall() throws Exception {
-        CatalogService catalogService = platformFactory.catalog(configuration());
+        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln, registry);
         String json = catalogService.getCatalog(type);
         if ("json".equalsIgnoreCase(format)) {
             println(json);
@@ -53,9 +55,12 @@ public class CatalogList extends DebeziumCommand {
 
         List<String[]> rows = new ArrayList<>();
         if (manifest.components() != null) {
-            for (Map.Entry<String, Map<String, Object>> typeEntry : manifest.components().entrySet()) {
-                for (String className : typeEntry.getValue().keySet()) {
-                    rows.add(new String[]{ typeEntry.getKey(), className });
+            for (Map.Entry<String, List<ComponentEntry>> typeEntry : manifest.components().entrySet()) {
+                if (typeEntry.getValue() == null) {
+                    continue;
+                }
+                for (ComponentEntry component : typeEntry.getValue()) {
+                    rows.add(new String[]{ typeEntry.getKey(), component.componentClass() != null ? component.componentClass() : "" });
                 }
             }
         }
