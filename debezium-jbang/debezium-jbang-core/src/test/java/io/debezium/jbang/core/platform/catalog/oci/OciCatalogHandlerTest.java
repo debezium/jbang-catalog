@@ -26,6 +26,55 @@ class OciCatalogHandlerTest {
     @TempDir
     Path root;
 
+    @Test
+    void shouldReturnFullCatalogWhenTypeNull() throws IOException {
+        writeManifest("3.8.0.Final");
+
+        var underTest = new OciCatalogHandler(root, MAPPER).getCatalog("3.8.0.Final");
+
+        assertThat(underTest.components().get("source-connector")).isNotEmpty();
+        assertThat(underTest.components().get("sink-connector")).isNotEmpty();
+    }
+
+    @Test
+    void shouldFilterCatalogByType() throws IOException {
+        writeManifest("3.8.0.Final");
+
+        var actual = new OciCatalogHandler(root, MAPPER).getCatalogByComponentType("3.8.0.Final", "source-connector");
+
+        assertThat(actual.components().get("source-connector")).isNotEmpty();
+        assertThat(actual.components().get("sink-connector")).isNull();
+    }
+
+    @Test
+    void shouldReadComponentDescriptor() throws IOException {
+        writeManifest("3.8.0.Final");
+        writeDescriptor("3.8.0.Final", "source-connector", "io.debezium.connector.postgresql.PostgresConnector", "Postgres");
+
+        ComponentDescriptor descriptor = new OciCatalogHandler(root, MAPPER)
+                .getComponentDescriptor("3.8.0.Final", "source-connector", "io.debezium.connector.postgresql.PostgresConnector");
+
+        assertThat(descriptor.name()).isEqualTo("Postgres");
+        assertThat(descriptor.properties()).hasSize(1);
+        assertThat(descriptor.properties().get(0).name()).isEqualTo("database.hostname");
+    }
+
+    @Test
+    void shouldThrowWhenDescriptorMissing() throws IOException {
+        writeManifest("3.8.0.Final");
+
+        assertThatThrownBy(() -> new OciCatalogHandler(root, MAPPER)
+                .getComponentDescriptor("3.8.0.Final", "source-connector", "io.debezium.connector.unknown.Nope"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Nope");
+    }
+
+    @Test
+    void shouldThrowWhenNoVersionsPresent() {
+        assertThatThrownBy(() -> new OciCatalogHandler(root, MAPPER).getCatalog("3.8.0.Final"))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
     private void writeDescriptor(String version, String type, String componentClass, String name) throws IOException {
         Path dir = root.resolve(version).resolve(type);
         Files.createDirectories(dir);
@@ -167,52 +216,4 @@ class OciCatalogHandlerTest {
                         .formatted(version));
     }
 
-    @Test
-    void shouldReturnFullCatalogWhenTypeNull() throws IOException {
-        writeManifest("3.8.0.Final");
-
-        var underTest = new OciCatalogHandler(root, MAPPER).getCatalog("3.8.0.Final");
-
-        assertThat(underTest.components().get("source-connector")).isNotEmpty();
-        assertThat(underTest.components().get("sink-connector")).isNotEmpty();
-    }
-
-    @Test
-    void shouldFilterCatalogByType() throws IOException {
-        writeManifest("3.8.0.Final");
-
-        var actual = new OciCatalogHandler(root, MAPPER).getCatalogByComponentType("3.8.0.Final", "source-connector");
-
-        assertThat(actual.components().get("source-connector")).isNotEmpty();
-        assertThat(actual.components().get("sink-connector")).isNull();
-    }
-
-    @Test
-    void shouldReadComponentDescriptor() throws IOException {
-        writeManifest("3.8.0.Final");
-        writeDescriptor("3.8.0.Final", "source-connector", "io.debezium.connector.postgresql.PostgresConnector", "Postgres");
-
-        ComponentDescriptor descriptor = new OciCatalogHandler(root, MAPPER)
-                .getComponentDescriptor("3.8.0.Final", "source-connector", "io.debezium.connector.postgresql.PostgresConnector");
-
-        assertThat(descriptor.name()).isEqualTo("Postgres");
-        assertThat(descriptor.properties()).hasSize(1);
-        assertThat(descriptor.properties().get(0).name()).isEqualTo("database.hostname");
-    }
-
-    @Test
-    void shouldThrowWhenDescriptorMissing() throws IOException {
-        writeManifest("3.8.0.Final");
-
-        assertThatThrownBy(() -> new OciCatalogHandler(root, MAPPER)
-                .getComponentDescriptor("3.8.0.Final", "source-connector", "io.debezium.connector.unknown.Nope"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Nope");
-    }
-
-    @Test
-    void shouldThrowWhenNoVersionsPresent() {
-        assertThatThrownBy(() -> new OciCatalogHandler(root, MAPPER).getCatalog("3.8.0.Final"))
-                .isInstanceOf(IllegalStateException.class);
-    }
 }
