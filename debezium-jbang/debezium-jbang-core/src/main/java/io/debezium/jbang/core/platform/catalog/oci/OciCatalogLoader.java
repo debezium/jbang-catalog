@@ -42,7 +42,6 @@ public final class OciCatalogLoader {
         Path cacheDir = expandHome(oci.getLocal());
 
         try {
-            logger.accept("Downloading catalog descriptors from " + registry + "/" + name + ":" + tag + " ...");
             downloader.download(registry, name, tag, cacheDir);
         }
         catch (RuntimeException e) {
