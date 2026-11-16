@@ -50,6 +50,9 @@ class OciCatalogNetworkIT {
 
         ComponentDescriptor descriptor = service.getComponentDescriptor(
                 "source-connector", "io.debezium.connector.postgresql.PostgresConnector");
+        assertThat(descriptor.name()).isEqualTo("Debezium PostgreSQL Connector");
+        assertThat(descriptor.type()).isEqualTo("source-connector");
+        assertThat(descriptor.version()).isNotEmpty();
         assertThat(descriptor.properties()).isNotEmpty();
         assertThat(descriptor.properties())
                 .anySatisfy(p -> assertThat(p.name()).isEqualTo("database.hostname"));
