@@ -31,6 +31,10 @@ class ValidateCommandJB extends JBangTestPicoCliCommand {
                 name: my-pipeline
                 source:
                   type: postgres
+                  config:
+                    database.hostname: hostname
+                    database.user: user
+                    database.password: password
                 sink:
                   type: kafka
                 """);
