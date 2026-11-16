@@ -33,64 +33,30 @@ class OciCatalogLoaderTest {
     Path cacheRoot;
 
     private final List<String> logs = new ArrayList<>();
-
-    /** Downloader that records its coordinates and lays down a minimal valid catalog instead of hitting a registry. */
-    private OciArtifactDownloader recordingDownloader(List<String> coordinates) {
-        return (registry, repository, reference, targetDir) -> {
-            coordinates.add(registry + "/" + repository + ":" + reference);
-            try {
-                Path versionDir = targetDir.resolve("3.8.0.Final");
-                Files.createDirectories(versionDir);
-                Files.writeString(versionDir.resolve("manifest.json"), "{\"components\":{}}");
-            }
-            catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        };
-    }
-
-    private Configuration configuration(String registry, String name, String tag) {
-        Artifact artifact = new Artifact();
-        artifact.setName(name);
-        artifact.setTag(tag);
-        Oci oci = new Oci();
-        oci.setLocal(cacheRoot.toString());
-        oci.setRegistry(registry);
-        oci.setArtifact(artifact);
-        Configuration configuration = new Configuration();
-        configuration.setOci(oci);
-        return configuration;
-    }
-
-    @Test
-    void shouldPullConfiguredCoordinates() {
-        List<String> coordinates = new ArrayList<>();
-
-        OciCatalogLoader.load(configuration("ghcr.io", "myorg/descriptors", "1.2.3"), logs::add, recordingDownloader(coordinates));
-
-        assertThat(coordinates).containsExactly("ghcr.io/myorg/descriptors:1.2.3");
-    }
+    private final static ObjectMapper MAPPER = new ObjectMapper();
 
     @Test
     void shouldReturnServiceReadingPulledCatalog() {
-        OciCatalogService service = OciCatalogLoader.load(
-                configuration("quay.io", "debezium/debezium-descriptors", "nightly"), logs::add, recordingDownloader(new ArrayList<>()));
+        OciCatalogLoader underTest = new OciCatalogLoader(configuration("quay.io",
+                "debezium/debezium-descriptors",
+                "nightly"), logs::add, MAPPER, recordingDownloader());
+
+        OciCatalogHandler service = underTest.load();
 
         assertThat(service.version()).isEqualTo("3.8.0.Final");
-        assertThat(service.getCatalog(null)).contains("components");
+        assertThat(service.getCatalog().components()).isNotEmpty();
     }
 
     @Test
     void shouldFallBackToCacheWhenPullFailsButCacheExists() {
         Configuration configuration = configuration("quay.io", "debezium/debezium-descriptors", "nightly");
-        // First populate the cache.
-        OciCatalogLoader.load(configuration, logs::add, recordingDownloader(new ArrayList<>()));
+        OciCatalogLoader ociCatalogLoader = new OciCatalogLoader(configuration, logs::add, MAPPER, recordingDownloader());
 
-        OciArtifactDownloader failing = (r, repo, ref, dir) -> {
+        ociCatalogLoader.load();
+
+        OciCatalogHandler service = new OciCatalogLoader(configuration, logs::add, MAPPER, (r, repo, ref, dir) -> {
             throw new RuntimeException("network down");
-        };
-
-        OciCatalogService service = OciCatalogLoader.load(configuration, logs::add, failing);
+        }).load();
 
         assertThat(service.version()).isEqualTo("3.8.0.Final");
         assertThat(logs).anyMatch(l -> l.contains("using cached copy"));
@@ -102,8 +68,11 @@ class OciCatalogLoaderTest {
             throw new RuntimeException("network down");
         };
 
-        assertThatThrownBy(() -> OciCatalogLoader.load(
-                configuration("quay.io", "debezium/debezium-descriptors", "nightly"), logs::add, failing))
+        OciCatalogLoader underTest = new OciCatalogLoader(configuration("quay.io",
+                "debezium/debezium-descriptors",
+                "nightly"), logs::add, MAPPER, failing);
+
+        assertThatThrownBy(underTest::load)
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("network down");
     }
@@ -132,4 +101,48 @@ class OciCatalogLoaderTest {
             assertThat(oci.getArtifact().getTag()).isEqualTo("nightly");
         }
     }
+
+    private OciArtifactDownloader recordingDownloader() {
+        return (registry, repository, reference, targetDir) -> {
+            try {
+                Path versionDir = targetDir.resolve("3.8.0.Final");
+                Files.createDirectories(versionDir);
+                Files.writeString(versionDir.resolve("manifest.json"), """
+                        {
+                          "schemaVersion": 1,
+                          "build": {
+                            "version": "3.8.0.Final"
+                          },
+                          "components": {
+                            "source-connector": [
+                              {
+                                "class": "io.debezium.connector.postgresql.PostgresConnector",
+                                "name": "Debezium PostgreSQL Connector",
+                                "description": "Captures row-level changes from a PostgreSQL database in near real-time.",
+                                "descriptor": "source-connector/io.debezium.connector.postgresql.PostgresConnector.json"
+                              }
+                            ]
+                          }
+                        }
+                        """);
+            }
+            catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        };
+    }
+
+    private Configuration configuration(String registry, String name, String tag) {
+        Artifact artifact = new Artifact();
+        artifact.setName(name);
+        artifact.setTag(tag);
+        Oci oci = new Oci();
+        oci.setLocal(cacheRoot.toString());
+        oci.setRegistry(registry);
+        oci.setArtifact(artifact);
+        Configuration configuration = new Configuration();
+        configuration.setOci(oci);
+        return configuration;
+    }
+
 }

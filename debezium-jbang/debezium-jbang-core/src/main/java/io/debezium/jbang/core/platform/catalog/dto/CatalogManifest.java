@@ -16,5 +16,12 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CatalogManifest(
-        @JsonProperty("components") Map<String, List<ComponentEntry>> components) {
+        @JsonProperty("schemaVersion") Integer schemaVersion,
+        @JsonProperty("build") Build build,
+        @JsonProperty("components") Map<String, List<Component>> components) {
+
+    @RegisterForReflection
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Build(@JsonProperty("version") String version) {
+    }
 }

@@ -10,16 +10,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.Oci;
 import io.debezium.jbang.inventory.oci.OciArtifactDownloader;
-import io.debezium.jbang.inventory.oci.OrasArtifactDownloader;
-
-import land.oras.Registry;
 
 /**
  * Reads the component descriptor OCI artifact coordinates from configuration, downloads it into a local
- * directory via an {@link OciArtifactDownloader} and exposes it as an {@link OciCatalogService}.
+ * directory via an {@link OciArtifactDownloader} and exposes it as an {@link OciCatalogHandler}.
  *
  * <p>Coordinates come from the {@code oci} block of the configuration, whose default values
  * ({@code quay.io/debezium/debezium-descriptors:nightly}, cache {@code ~/.dbz/oci}) live in
@@ -27,22 +26,27 @@ import land.oras.Registry;
  */
 public final class OciCatalogLoader {
 
-    private OciCatalogLoader() {
+    private final Configuration configuration;
+    private final Consumer<String> logger;
+    private final ObjectMapper objectMapper;
+    private final OciArtifactDownloader downloader;
+
+    public OciCatalogLoader(Configuration configuration,
+                            Consumer<String> logger,
+                            ObjectMapper objectMapper,
+                            OciArtifactDownloader downloader) {
+        this.configuration = configuration;
+        this.logger = logger;
+        this.objectMapper = objectMapper;
+        this.downloader = downloader;
     }
 
-    public static OciCatalogService load(Configuration configuration, Consumer<String> logger, Registry registry) {
-        return load(configuration, logger, new OrasArtifactDownloader(registry));
-    }
-
-    static OciCatalogService load(Configuration configuration, Consumer<String> logger, OciArtifactDownloader downloader) {
+    public OciCatalogHandler load() {
         Oci oci = configuration.getOci();
-        String registry = oci.getRegistry();
-        String name = oci.getArtifact().getName();
-        String tag = oci.getArtifact().getTag();
         Path cacheDir = expandHome(oci.getLocal());
 
         try {
-            downloader.download(registry, name, tag, cacheDir);
+            downloader.download(oci.getRegistry(), oci.getArtifact().getName(), oci.getArtifact().getTag(), cacheDir);
         }
         catch (RuntimeException e) {
             if (!isCached(cacheDir)) {
@@ -51,7 +55,7 @@ public final class OciCatalogLoader {
             logger.accept("Could not refresh catalog descriptors (" + e.getMessage() + "); using cached copy at " + cacheDir);
         }
 
-        return new OciCatalogService(cacheDir);
+        return new OciCatalogHandler(cacheDir, objectMapper);
     }
 
     static Path expandHome(String path) {

@@ -12,7 +12,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ComponentEntry(
+public record Component(
         @JsonProperty("class") String componentClass,
         @JsonProperty("name") String name,
         @JsonProperty("description") String description,

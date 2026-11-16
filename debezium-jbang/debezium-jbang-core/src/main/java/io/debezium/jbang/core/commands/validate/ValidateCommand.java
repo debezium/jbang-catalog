@@ -21,8 +21,9 @@ import io.debezium.jbang.core.build.config.DbzConfigLoader;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
 import io.debezium.jbang.core.platform.catalog.dto.Property;
+import io.debezium.jbang.core.platform.catalog.oci.OciCatalogHandler;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
-import io.debezium.jbang.core.platform.catalog.service.CatalogService;
+import io.debezium.jbang.inventory.oci.OrasArtifactDownloader;
 
 import land.oras.Registry;
 import picocli.CommandLine;
@@ -39,14 +40,17 @@ public class ValidateCommand extends DebeziumCommand {
             new RequiredFieldValidator(),
             new EnumValueValidator());
 
-    private final Registry registry;
+    private final OciCatalogLoader ociCatalogLoader;
 
     @CommandLine.Option(names = { "--config" }, description = "Path to dbz.yaml (default: ./dbz.yaml)", defaultValue = "dbz.yaml")
     String configPath;
 
     public ValidateCommand(DebeziumJBangMain main, Registry registry) {
         super(main);
-        this.registry = registry;
+        this.ociCatalogLoader = new OciCatalogLoader(configuration(),
+                this::errPrintln,
+                getMain().getJsonMapper(),
+                new OrasArtifactDownloader(registry));
     }
 
     @Override
@@ -118,7 +122,7 @@ public class ValidateCommand extends DebeziumCommand {
                 : null;
         if (errors.isEmpty() && connectorClass != null) {
             try {
-                CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln, registry);
+                OciCatalogHandler catalogService = ociCatalogLoader.load();
                 ComponentDescriptor descriptor = catalogService.getComponentDescriptor("source-connector", connectorClass);
                 Map<String, Object> sourceConfig = config.source().config() != null ? config.source().config() : Map.of();
                 for (Property p : Objects.requireNonNullElse(descriptor.properties(), List.<Property> of())) {

@@ -33,7 +33,7 @@ class CatalogManifestTest {
         CatalogManifest manifest = new ObjectMapper().readValue(json, CatalogManifest.class);
 
         assertThat(manifest.components()).containsOnlyKeys("source-connector", "sink-connector");
-        ComponentEntry postgres = manifest.components().get("source-connector").get(0);
+        Component postgres = manifest.components().get("source-connector").get(0);
         assertThat(postgres.componentClass()).isEqualTo("io.debezium.connector.postgresql.PostgresConnector");
         assertThat(postgres.name()).isEqualTo("Postgres");
         assertThat(postgres.description()).isEqualTo("pg");

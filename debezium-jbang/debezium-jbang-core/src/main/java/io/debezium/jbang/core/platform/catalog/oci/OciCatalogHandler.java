@@ -11,27 +11,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.debezium.jbang.core.platform.catalog.Catalog;
+import io.debezium.jbang.core.platform.catalog.dto.CatalogManifest;
+import io.debezium.jbang.core.platform.catalog.dto.Component;
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
-import io.debezium.jbang.core.platform.catalog.service.CatalogService;
 
-/**
- * {@link CatalogService} backed by component descriptors extracted from an OCI artifact, laid out the
- * same way the Debezium Platform conductor consumes them:
- *
- * <pre>
- *   &lt;root&gt;/&lt;version&gt;/manifest.json
- *   &lt;root&gt;/&lt;version&gt;/&lt;type&gt;/&lt;class&gt;.json
- * </pre>
- *
- * The newest available version directory is used.
- */
-public class OciCatalogService implements CatalogService {
+public class OciCatalogHandler {
 
     private static final String MANIFEST_FILE_NAME = "manifest.json";
     private static final String COMPONENTS_FIELD = "components";
@@ -39,36 +30,82 @@ public class OciCatalogService implements CatalogService {
 
     private final Path descriptorsRoot;
     private final String version;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
-    public OciCatalogService(Path descriptorsRoot) {
+    public OciCatalogHandler(Path descriptorsRoot, ObjectMapper objectMapper) {
         this.descriptorsRoot = descriptorsRoot;
         this.version = latestVersion(descriptorsRoot);
+        this.objectMapper = objectMapper;
     }
 
-    /** The version directory this service reads from. */
+    /**
+     * The version directory this service reads from.
+     */
     public String version() {
         return version;
     }
 
-    @Override
-    public String getCatalog(String type) {
+    public Catalog getCatalog() {
         Path manifestPath = descriptorsRoot.resolve(version).resolve(MANIFEST_FILE_NAME);
         if (!Files.exists(manifestPath)) {
             throw new IllegalStateException("Catalog manifest not found for version " + version + " at " + manifestPath);
         }
         try {
-            if (type == null || type.isBlank()) {
-                return Files.readString(manifestPath);
-            }
-            return filterByType(manifestPath, type).toString();
+            CatalogManifest catalogManifest = objectMapper.readValue(manifestPath.toFile(), CatalogManifest.class);
+
+            return new Catalog(
+                    new Catalog.Schema(catalogManifest.schemaVersion()),
+                    new Catalog.Build(catalogManifest.build().version()),
+                    catalogManifest.components()
+                            .entrySet()
+                            .stream()
+                            .map(components -> Map.entry(components.getKey(),
+                                    components
+                                            .getValue()
+                                            .stream()
+                                            .map(component -> new Catalog.Component(
+                                                    component.componentClass(),
+                                                    component.name(),
+                                                    component.description(),
+                                                    component.descriptor()))
+                                            .toList()))
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
         }
         catch (IOException e) {
             throw new UncheckedIOException("Failed to read catalog manifest " + manifestPath, e);
         }
     }
 
-    @Override
+    public Catalog getCatalogByComponentType(String type) {
+        Path manifestPath = descriptorsRoot.resolve(version).resolve(MANIFEST_FILE_NAME);
+        if (!Files.exists(manifestPath)) {
+            throw new IllegalStateException("Catalog manifest not found for version " + version + " at " + manifestPath);
+        }
+
+        try {
+            CatalogManifest catalogManifest = objectMapper.readValue(manifestPath.toFile(), CatalogManifest.class);
+
+            List<Component> components = catalogManifest
+                    .components()
+                    .get(type);
+
+            return new Catalog(
+                    new Catalog.Schema(catalogManifest.schemaVersion()),
+                    new Catalog.Build(catalogManifest.build().version()),
+                    Map.of(type, components
+                            .stream()
+                            .map(component -> new Catalog.Component(component.componentClass(),
+                                    component.name(),
+                                    component.description(),
+                                    component.descriptor()))
+                            .toList()));
+        }
+        catch (IOException e) {
+            throw new UncheckedIOException("Failed to read catalog manifest " + manifestPath, e);
+        }
+    }
+
     public ComponentDescriptor getComponentDescriptor(String type, String componentClass) {
         Path descriptorPath = descriptorsRoot.resolve(version).resolve(type).resolve(componentClass + DESCRIPTOR_SUFFIX);
         if (!Files.exists(descriptorPath)) {
@@ -81,21 +118,6 @@ public class OciCatalogService implements CatalogService {
         catch (IOException e) {
             throw new UncheckedIOException("Failed to read descriptor " + descriptorPath, e);
         }
-    }
-
-    private JsonNode filterByType(Path manifestPath, String type) throws IOException {
-        JsonNode catalog = objectMapper.readTree(manifestPath.toFile());
-        if (catalog instanceof ObjectNode root) {
-            JsonNode components = root.get(COMPONENTS_FIELD);
-            if (components != null && components.isObject()) {
-                ObjectNode filtered = objectMapper.createObjectNode();
-                if (components.has(type)) {
-                    filtered.set(type, components.get(type));
-                }
-                root.set(COMPONENTS_FIELD, filtered);
-            }
-        }
-        return catalog;
     }
 
     static String latestVersion(Path descriptorsRoot) {

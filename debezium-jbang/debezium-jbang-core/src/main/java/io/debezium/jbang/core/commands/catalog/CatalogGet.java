@@ -7,14 +7,13 @@ package io.debezium.jbang.core.commands.catalog;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
 import io.debezium.jbang.core.platform.catalog.dto.Property;
+import io.debezium.jbang.core.platform.catalog.oci.OciCatalogHandler;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
-import io.debezium.jbang.core.platform.catalog.service.CatalogService;
+import io.debezium.jbang.inventory.oci.OrasArtifactDownloader;
 
 import land.oras.Registry;
 import picocli.CommandLine;
@@ -22,6 +21,7 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "get", description = "Get descriptor for a specific catalog component", sortOptions = false)
 public class CatalogGet extends DebeziumCommand {
 
+    private final OciCatalogLoader ociCatalogLoader;
     @CommandLine.Parameters(index = "0", description = "Component type (e.g. source-connector, sink-connector, transformation)")
     String type;
 
@@ -31,26 +31,29 @@ public class CatalogGet extends DebeziumCommand {
     @CommandLine.Option(names = { "--format" }, description = "Output format: table (default) or json", defaultValue = "table")
     String format;
 
-    private final Registry registry;
-
     public CatalogGet(DebeziumJBangMain main, Registry registry) {
         super(main);
-        this.registry = registry;
+        this.ociCatalogLoader = new OciCatalogLoader(configuration(),
+                this::errPrintln,
+                getMain().getJsonMapper(),
+                new OrasArtifactDownloader(registry));
     }
 
     @Override
     public Integer doCall() throws Exception {
-        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln, registry);
+        OciCatalogHandler catalogService = ociCatalogLoader.load();
+
         ComponentDescriptor descriptor = catalogService.getComponentDescriptor(type, componentClass);
+
         if ("json".equalsIgnoreCase(format)) {
-            println(new ObjectMapper().writeValueAsString(descriptor));
+            println(getMain().getJsonMapper().writeValueAsString(descriptor));
             return 0;
         }
         printTable(descriptor);
         return 0;
     }
 
-    private void printTable(ComponentDescriptor descriptor) throws Exception {
+    private void printTable(ComponentDescriptor descriptor) {
 
         printf("Name:    %s%n", descriptor.name());
         printf("Type:    %s%n", descriptor.type());

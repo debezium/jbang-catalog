@@ -88,6 +88,7 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
 
     private Printer out = new Printer.SystemOutPrinter();
 
+    private final ObjectMapper jsonMapper = new ObjectMapper();
     private final ObjectMapper yamlMapper = new ObjectMapper(
             new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
 
@@ -176,5 +177,13 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
 
     public void save(Configuration configuration) {
         configurationManager.save(configuration);
+    }
+
+    public ObjectMapper getYamlMapper() {
+        return yamlMapper;
+    }
+
+    public ObjectMapper getJsonMapper() {
+        return jsonMapper;
     }
 }

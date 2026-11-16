@@ -15,12 +15,11 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
 
-class OciCatalogServiceTest {
+class OciCatalogHandlerTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -70,38 +69,36 @@ class OciCatalogServiceTest {
         writeManifest("3.8.0-SNAPSHOT");
         writeManifest("3.8.0.Final");
 
-        OciCatalogService service = new OciCatalogService(root);
+        OciCatalogHandler service = new OciCatalogHandler(root, MAPPER);
 
         assertThat(service.version()).isEqualTo("3.8.0.Final");
     }
 
     @Test
     void shouldOrderSnapshotBeforeMatchingRelease() {
-        assertThat(OciCatalogService.versionComparator().compare("3.8.0-SNAPSHOT", "3.8.0.Final")).isNegative();
-        assertThat(OciCatalogService.versionComparator().compare("3.7.0.Final", "3.8.0-SNAPSHOT")).isNegative();
-        assertThat(OciCatalogService.versionComparator().compare("3.10.0.Final", "3.9.0.Final")).isPositive();
+        assertThat(OciCatalogHandler.versionComparator().compare("3.8.0-SNAPSHOT", "3.8.0.Final")).isNegative();
+        assertThat(OciCatalogHandler.versionComparator().compare("3.7.0.Final", "3.8.0-SNAPSHOT")).isNegative();
+        assertThat(OciCatalogHandler.versionComparator().compare("3.10.0.Final", "3.9.0.Final")).isPositive();
     }
 
     @Test
     void shouldReturnFullCatalogWhenTypeNull() throws IOException {
         writeManifest("3.8.0.Final");
 
-        String json = new OciCatalogService(root).getCatalog(null);
-        JsonNode node = MAPPER.readTree(json);
+        var actual = new OciCatalogHandler(root, new ObjectMapper()).getCatalog();
 
-        assertThat(node.path("components").has("source-connector")).isTrue();
-        assertThat(node.path("components").has("sink-connector")).isTrue();
+        assertThat(actual.components().get("source-connector")).isNotEmpty();
+        assertThat(actual.components().get("sink-connector")).isNotEmpty();
     }
 
     @Test
     void shouldFilterCatalogByType() throws IOException {
         writeManifest("3.8.0.Final");
 
-        String json = new OciCatalogService(root).getCatalog("source-connector");
-        JsonNode components = MAPPER.readTree(json).path("components");
+        var actual = new OciCatalogHandler(root, MAPPER).getCatalogByComponentType("source-connector");
 
-        assertThat(components.has("source-connector")).isTrue();
-        assertThat(components.has("sink-connector")).isFalse();
+        assertThat(actual.components().get("source-connector")).isNotEmpty();
+        assertThat(actual.components().get("sink-connector")).isNull();
     }
 
     @Test
@@ -109,7 +106,7 @@ class OciCatalogServiceTest {
         writeManifest("3.8.0.Final");
         writeDescriptor("3.8.0.Final", "source-connector", "io.debezium.connector.postgresql.PostgresConnector", "Postgres");
 
-        ComponentDescriptor descriptor = new OciCatalogService(root)
+        ComponentDescriptor descriptor = new OciCatalogHandler(root, MAPPER)
                 .getComponentDescriptor("source-connector", "io.debezium.connector.postgresql.PostgresConnector");
 
         assertThat(descriptor.name()).isEqualTo("Postgres");
@@ -121,7 +118,7 @@ class OciCatalogServiceTest {
     void shouldThrowWhenDescriptorMissing() throws IOException {
         writeManifest("3.8.0.Final");
 
-        assertThatThrownBy(() -> new OciCatalogService(root)
+        assertThatThrownBy(() -> new OciCatalogHandler(root, MAPPER)
                 .getComponentDescriptor("source-connector", "io.debezium.connector.unknown.Nope"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Nope");
@@ -129,7 +126,7 @@ class OciCatalogServiceTest {
 
     @Test
     void shouldThrowWhenNoVersionsPresent() {
-        assertThatThrownBy(() -> new OciCatalogService(root))
+        assertThatThrownBy(() -> new OciCatalogHandler(root, MAPPER))
                 .isInstanceOf(IllegalStateException.class);
     }
 }

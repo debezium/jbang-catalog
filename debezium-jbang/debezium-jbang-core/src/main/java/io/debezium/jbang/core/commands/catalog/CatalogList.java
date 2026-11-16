@@ -5,18 +5,16 @@
  */
 package io.debezium.jbang.core.commands.catalog;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
-import io.debezium.jbang.core.platform.catalog.dto.CatalogManifest;
-import io.debezium.jbang.core.platform.catalog.dto.ComponentEntry;
+import io.debezium.jbang.core.platform.catalog.Catalog;
+import io.debezium.jbang.core.platform.catalog.oci.OciCatalogHandler;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
-import io.debezium.jbang.core.platform.catalog.service.CatalogService;
+import io.debezium.jbang.inventory.oci.OrasArtifactDownloader;
 
 import land.oras.Registry;
 import picocli.CommandLine;
@@ -24,7 +22,7 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "list", description = "List available catalog components for the current platform version", sortOptions = false)
 public class CatalogList extends DebeziumCommand {
 
-    private final Registry registry;
+    private final OciCatalogLoader ociCatalogLoader;
 
     @CommandLine.Option(names = { "--type" }, description = "Filter by component type (e.g. source-connector, sink-connector, transformation)")
     String type;
@@ -34,36 +32,47 @@ public class CatalogList extends DebeziumCommand {
 
     public CatalogList(DebeziumJBangMain main, Registry registry) {
         super(main);
-        this.registry = registry;
+        this.ociCatalogLoader = new OciCatalogLoader(configuration(),
+                this::errPrintln,
+                getMain().getJsonMapper(),
+                new OrasArtifactDownloader(registry));
     }
 
     @Override
     public Integer doCall() throws Exception {
-        CatalogService catalogService = OciCatalogLoader.load(configuration(), this::errPrintln, registry);
-        String json = catalogService.getCatalog(type);
-        if ("json".equalsIgnoreCase(format)) {
-            println(json);
+        OciCatalogHandler catalogService = ociCatalogLoader.load();
+
+        if (type != null) {
+            Catalog catalog = catalogService.getCatalogByComponentType(type);
+            print(catalog);
             return 0;
         }
-        printTable(json);
+
+        Catalog catalog = catalogService.getCatalog();
+        print(catalog);
+
         return 0;
     }
 
-    private void printTable(String json) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        CatalogManifest manifest = mapper.readValue(json, CatalogManifest.class);
-
-        List<String[]> rows = new ArrayList<>();
-        if (manifest.components() != null) {
-            for (Map.Entry<String, List<ComponentEntry>> typeEntry : manifest.components().entrySet()) {
-                if (typeEntry.getValue() == null) {
-                    continue;
-                }
-                for (ComponentEntry component : typeEntry.getValue()) {
-                    rows.add(new String[]{ typeEntry.getKey(), component.componentClass() != null ? component.componentClass() : "" });
-                }
-            }
+    private void print(Catalog catalog) throws JsonProcessingException {
+        if ("json".equalsIgnoreCase(format)) {
+            println(getMain().getJsonMapper().writeValueAsString(catalog));
+            return;
         }
+
+        printTable(catalog);
+    }
+
+    private void printTable(Catalog json) {
+        List<String[]> rows = json.components()
+                .entrySet()
+                .stream()
+                .flatMap(components -> components
+                        .getValue()
+                        .stream()
+                        .map(component -> new String[]{ components.getKey(),
+                                component.componentClass() != null ? component.componentClass() : "" }))
+                .toList();
 
         int typeWidth = Math.max(4, rows.stream().mapToInt(r -> r[0].length()).max().orElse(4));
         int classWidth = Math.max(5, rows.stream().mapToInt(r -> r[1].length()).max().orElse(5));
