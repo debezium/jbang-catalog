@@ -21,6 +21,7 @@ import io.debezium.jbang.core.build.config.DbzConfigLoader;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
 import io.debezium.jbang.core.platform.catalog.dto.Property;
+import io.debezium.jbang.core.platform.catalog.oci.CatalogVersions;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogHandler;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
 import io.debezium.jbang.inventory.oci.OrasArtifactDownloader;
@@ -44,6 +45,9 @@ public class ValidateCommand extends DebeziumCommand {
 
     @CommandLine.Option(names = { "--config" }, description = "Path to dbz.yaml (default: ./dbz.yaml)", defaultValue = "dbz.yaml")
     String configPath;
+
+    @CommandLine.Option(names = { "--version" }, description = "specify catalog version")
+    String version;
 
     public ValidateCommand(DebeziumJBangMain main, Registry registry) {
         super(main);
@@ -123,7 +127,10 @@ public class ValidateCommand extends DebeziumCommand {
         if (errors.isEmpty() && connectorClass != null) {
             try {
                 OciCatalogHandler catalogService = ociCatalogLoader.load();
-                ComponentDescriptor descriptor = catalogService.getComponentDescriptor("source-connector", connectorClass);
+                CatalogVersions catalogVersions = CatalogVersions.from(configuration().getOci().getResolvedLocal());
+                String acceptedVersion = catalogVersions.acceptedVersion(version);
+
+                ComponentDescriptor descriptor = catalogService.getComponentDescriptor(acceptedVersion, "source-connector", connectorClass);
                 Map<String, Object> sourceConfig = config.source().config() != null ? config.source().config() : Map.of();
                 for (Property p : Objects.requireNonNullElse(descriptor.properties(), List.<Property> of())) {
                     errors.addAll(validators.validate(p, sourceConfig));

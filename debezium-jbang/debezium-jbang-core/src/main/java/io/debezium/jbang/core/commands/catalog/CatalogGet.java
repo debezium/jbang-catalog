@@ -11,6 +11,7 @@ import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
 import io.debezium.jbang.core.platform.catalog.dto.Property;
+import io.debezium.jbang.core.platform.catalog.oci.CatalogVersions;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogHandler;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
 import io.debezium.jbang.inventory.oci.OrasArtifactDownloader;
@@ -31,6 +32,9 @@ public class CatalogGet extends DebeziumCommand {
     @CommandLine.Option(names = { "--format" }, description = "Output format: table (default) or json", defaultValue = "table")
     String format;
 
+    @CommandLine.Option(names = { "--version" }, description = "specify catalog version")
+    String version;
+
     public CatalogGet(DebeziumJBangMain main, Registry registry) {
         super(main);
         this.ociCatalogLoader = new OciCatalogLoader(configuration(),
@@ -43,7 +47,11 @@ public class CatalogGet extends DebeziumCommand {
     public Integer doCall() throws Exception {
         OciCatalogHandler catalogService = ociCatalogLoader.load();
 
-        ComponentDescriptor descriptor = catalogService.getComponentDescriptor(type, componentClass);
+        CatalogVersions catalogVersions = CatalogVersions.from(configuration().getOci().getResolvedLocal());
+
+        String acceptedVersion = catalogVersions.acceptedVersion(version);
+
+        ComponentDescriptor descriptor = catalogService.getComponentDescriptor(acceptedVersion, type, componentClass);
 
         if ("json".equalsIgnoreCase(format)) {
             println(getMain().getJsonMapper().writeValueAsString(descriptor));

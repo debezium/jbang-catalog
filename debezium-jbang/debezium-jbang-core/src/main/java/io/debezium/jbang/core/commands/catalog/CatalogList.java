@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.platform.catalog.Catalog;
+import io.debezium.jbang.core.platform.catalog.oci.CatalogVersions;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogHandler;
 import io.debezium.jbang.core.platform.catalog.oci.OciCatalogLoader;
 import io.debezium.jbang.inventory.oci.OrasArtifactDownloader;
@@ -30,6 +31,9 @@ public class CatalogList extends DebeziumCommand {
     @CommandLine.Option(names = { "--format" }, description = "Output format: table (default) or json", defaultValue = "table")
     String format;
 
+    @CommandLine.Option(names = { "--version" }, description = "specify catalog version")
+    String version;
+
     public CatalogList(DebeziumJBangMain main, Registry registry) {
         super(main);
         this.ociCatalogLoader = new OciCatalogLoader(configuration(),
@@ -40,15 +44,18 @@ public class CatalogList extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        OciCatalogHandler catalogService = ociCatalogLoader.load();
+        OciCatalogHandler catalogHandler = ociCatalogLoader.load();
+        CatalogVersions catalogVersions = CatalogVersions.from(configuration().getOci().getResolvedLocal());
+
+        String acceptedVersion = catalogVersions.acceptedVersion(version);
 
         if (type != null) {
-            Catalog catalog = catalogService.getCatalogByComponentType(type);
+            Catalog catalog = catalogHandler.getCatalogByComponentType(acceptedVersion, type);
             print(catalog);
             return 0;
         }
 
-        Catalog catalog = catalogService.getCatalog();
+        Catalog catalog = catalogHandler.getCatalog(acceptedVersion);
         print(catalog);
 
         return 0;

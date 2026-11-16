@@ -5,6 +5,9 @@
  */
 package io.debezium.jbang.configuration;
 
+import java.nio.file.Path;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonMerge;
 
@@ -39,5 +42,13 @@ public class Oci {
 
     public void setArtifact(Artifact artifact) {
         this.artifact = artifact;
+    }
+
+    @JsonIgnore
+    public Path getResolvedLocal() {
+        return local.startsWith("~")
+                ? Path.of(System.getProperty("user.home") + local.substring(1))
+                : Path.of(local);
+
     }
 }

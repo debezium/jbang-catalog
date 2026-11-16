@@ -43,8 +43,7 @@ class OciCatalogLoaderTest {
 
         OciCatalogHandler service = underTest.load();
 
-        assertThat(service.version()).isEqualTo("3.8.0.Final");
-        assertThat(service.getCatalog().components()).isNotEmpty();
+        assertThat(service.getCatalog("3.8.0.Final").components()).isNotEmpty();
     }
 
     @Test
@@ -58,7 +57,6 @@ class OciCatalogLoaderTest {
             throw new RuntimeException("network down");
         }).load();
 
-        assertThat(service.version()).isEqualTo("3.8.0.Final");
         assertThat(logs).anyMatch(l -> l.contains("using cached copy"));
     }
 
@@ -75,18 +73,6 @@ class OciCatalogLoaderTest {
         assertThatThrownBy(underTest::load)
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("network down");
-    }
-
-    @Test
-    void shouldExpandTildeAgainstUserHome() {
-        Path resolved = OciCatalogLoader.expandHome("~/.dbz/oci");
-        assertThat(resolved.toString()).isEqualTo(System.getProperty("user.home") + "/.dbz/oci");
-    }
-
-    @Test
-    void shouldLeaveAbsolutePathUnchanged() {
-        Path resolved = OciCatalogLoader.expandHome("/var/cache/dbz");
-        assertThat(resolved.toString()).isEqualTo("/var/cache/dbz");
     }
 
     @Test

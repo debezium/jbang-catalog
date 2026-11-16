@@ -12,7 +12,7 @@ public record Catalog(
         Schema schema,
         Build build,
         Map<String, List<Component>> components) {
-    public record Schema(Integer version) {
+    public record Schema(String version) {
     }
 
     public record Build(String version) {

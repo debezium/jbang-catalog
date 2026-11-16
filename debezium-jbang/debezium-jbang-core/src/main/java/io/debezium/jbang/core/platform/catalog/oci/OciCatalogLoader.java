@@ -43,25 +43,18 @@ public final class OciCatalogLoader {
 
     public OciCatalogHandler load() {
         Oci oci = configuration.getOci();
-        Path cacheDir = expandHome(oci.getLocal());
 
         try {
-            downloader.download(oci.getRegistry(), oci.getArtifact().getName(), oci.getArtifact().getTag(), cacheDir);
+            downloader.download(oci.getRegistry(), oci.getArtifact().getName(), oci.getArtifact().getTag(), oci.getResolvedLocal());
         }
         catch (RuntimeException e) {
-            if (!isCached(cacheDir)) {
+            if (!isCached(oci.getResolvedLocal())) {
                 throw e;
             }
-            logger.accept("Could not refresh catalog descriptors (" + e.getMessage() + "); using cached copy at " + cacheDir);
+            logger.accept("Could not refresh catalog descriptors (" + e.getMessage() + "); using cached copy at " + oci.getResolvedLocal());
         }
 
-        return new OciCatalogHandler(cacheDir, objectMapper);
-    }
-
-    static Path expandHome(String path) {
-        return path.startsWith("~")
-                ? Path.of(System.getProperty("user.home") + path.substring(1))
-                : Path.of(path);
+        return new OciCatalogHandler(oci.getResolvedLocal(), objectMapper);
     }
 
     private static boolean isCached(Path cacheDir) {
