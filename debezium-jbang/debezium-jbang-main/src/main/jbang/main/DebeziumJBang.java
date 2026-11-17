@@ -8,8 +8,8 @@
 
 //JAVA 21+
 //REPOS central=https://repo1.maven.org/maven2,apache-snapshot=https://repository.apache.org/content/groups/snapshots/
-//JAVA_OPTIONS -Ddebezium.jbang.quarkusVersion=3.33.1.1 --add-opens java.base/java.lang=ALL-UNNAMED
-//DEPS io.quarkus.platform:quarkus-bom:3.33.1.1@pom
+//JAVA_OPTIONS -Ddebezium.jbang.quarkusVersion=4.0.0.CR1 --add-opens java.base/java.lang=ALL-UNNAMED
+//DEPS io.quarkus.platform:quarkus-bom:4.0.0.CR1@pom
 //JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
 //DEPS org.jboss.slf4j:slf4j-jboss-logmanager:2.0.2.Final
 //DEPS io.debezium:debezium-bom:${debezium.jbang.version:3.8.0-SNAPSHOT}@pom

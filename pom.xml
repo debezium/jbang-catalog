@@ -18,7 +18,7 @@
         <!-- Debezium parent -->
         <version.debezium>${project.version}</version.debezium>
 
-        <quarkus-version>3.33.1.1</quarkus-version>
+        <quarkus-version>4.0.0.CR1</quarkus-version>
         <version.jandex>3.5.3</version.jandex>
         <version.oras>0.8.2</version.oras>
     </properties>
@@ -29,13 +29,6 @@
                 <groupId>io.smallrye</groupId>
                 <artifactId>jandex</artifactId>
                 <version>${version.jandex}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.debezium</groupId>
-                <artifactId>debezium-bom</artifactId>
-                <version>${version.debezium}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>io.quarkus.platform</groupId>
