@@ -3,6 +3,8 @@ platform:
   environments:
     default:
       url: "http://localhost:8080"
+authentication:
+  credentials: "~/.dbz/credentials.json"
 build:
   container:
     base:

@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+
+import io.debezium.jbang.configuration.Authentication;
+import io.debezium.jbang.configuration.Configuration;
 
 /**
  * Exercises the refresh path against an authorization server that rotates refresh tokens.
@@ -56,6 +60,12 @@ public class TokenProviderTest {
     public void start() throws IOException {
         originalHome = System.getProperty("user.home");
         System.setProperty("user.home", home.toString());
+        Files.createDirectories(home.resolve(".dbz"));
+        Authentication authentication = new Authentication();
+        authentication.setCredentials("~/.dbz/credentials.json");
+        Configuration configuration = new Configuration();
+        configuration.setAuthentication(authentication);
+        CredentialStore.configure(configuration);
 
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         issuer = "http://127.0.0.1:" + server.getAddress().getPort();

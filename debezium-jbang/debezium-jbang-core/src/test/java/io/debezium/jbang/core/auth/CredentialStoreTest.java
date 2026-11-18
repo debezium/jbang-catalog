@@ -16,6 +16,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import io.debezium.jbang.configuration.Authentication;
+import io.debezium.jbang.configuration.Configuration;
+
 public class CredentialStoreTest {
 
     @TempDir
@@ -24,9 +27,11 @@ public class CredentialStoreTest {
     private String originalHome;
 
     @BeforeEach
-    public void redirectHome() {
+    public void redirectHome() throws Exception {
         originalHome = System.getProperty("user.home");
         System.setProperty("user.home", home.toString());
+        Files.createDirectories(home.resolve(".dbz"));
+        configureCredentials("~/.dbz/credentials.json");
     }
 
     @AfterEach
@@ -66,6 +71,17 @@ public class CredentialStoreTest {
 
         assertThat(Files.exists(file)).isTrue();
         assertThat(PosixFilePermissions.toString(Files.getPosixFilePermissions(file))).isEqualTo("rw-------");
+    }
+
+    @Test
+    public void shouldUseTheConfiguredCredentialsFile() {
+        configureCredentials(home.resolve("custom-credentials.json").toString());
+
+        CredentialStore.save("https://api.example.com", credential("refresh-1"));
+
+        assertThat(CredentialStore.path()).isEqualTo(home.resolve("custom-credentials.json"));
+        assertThat(Files.exists(home.resolve("custom-credentials.json"))).isTrue();
+        assertThat(Files.exists(home.resolve(".dbz/credentials.json"))).isFalse();
     }
 
     /** Otherwise one platform accumulates an entry per spelling of its address. */
@@ -169,6 +185,14 @@ public class CredentialStoreTest {
 
         assertThat(loaded.refreshToken()).isEqualTo("refresh-1");
         assertThat(loaded.issuer()).isNull();
+    }
+
+    private static void configureCredentials(String path) {
+        Authentication authentication = new Authentication();
+        authentication.setCredentials(path);
+        Configuration configuration = new Configuration();
+        configuration.setAuthentication(authentication);
+        CredentialStore.configure(configuration);
     }
 
     private static void writeCredentialsFile(String content) throws Exception {

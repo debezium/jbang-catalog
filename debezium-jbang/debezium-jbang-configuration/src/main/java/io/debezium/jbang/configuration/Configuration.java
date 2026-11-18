@@ -6,6 +6,8 @@
 package io.debezium.jbang.configuration;
 
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -27,6 +29,9 @@ public class Configuration {
 
     @JsonMerge
     private Oci oci;
+
+    @JsonMerge
+    private Authentication authentication;
 
     public Platform getPlatform() {
         return platform;
@@ -50,6 +55,29 @@ public class Configuration {
 
     public void setOci(Oci oci) {
         this.oci = oci;
+    }
+
+    public Authentication getAuthentication() {
+        return authentication;
+    }
+
+    public void setAuthentication(Authentication authentication) {
+        this.authentication = authentication;
+    }
+
+    @JsonIgnore
+    public Path getResolvedCredentials() {
+        String credentials = authentication == null || authentication.getCredentials() == null || authentication.getCredentials().isBlank()
+                ? Authentication.DEFAULT_CREDENTIALS
+                : authentication.getCredentials();
+        if (credentials.equals("~") || credentials.startsWith("~/")) {
+            String home = System.getProperty("user.home");
+            if (home == null || home.isBlank() || home.startsWith("?")) {
+                home = System.getenv("HOME");
+            }
+            return Paths.get(home + credentials.substring(1));
+        }
+        return Paths.get(credentials);
     }
 
     @JsonIgnore

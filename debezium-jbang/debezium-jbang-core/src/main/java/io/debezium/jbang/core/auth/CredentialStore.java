@@ -18,11 +18,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.debezium.jbang.core.util.CommandLineUtil;
+import io.debezium.jbang.configuration.Configuration;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
- * Refresh tokens on disk, at {@code ~/.dbz/credentials.json}, mode 0600.
+ * Refresh tokens on disk, at the configured credentials path, mode 0600.
  * <p>
  * Deliberately not {@code config.yaml}: that file holds platform addresses, looks shareable, and
  * eventually someone commits it. Credentials live in a separate file that never looks safe to copy.
@@ -33,19 +33,21 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
  */
 public final class CredentialStore {
 
-    private static final String CONFIG_DIR = ".dbz";
-    private static final String CREDENTIALS_FILE = "credentials.json";
-
     private static final Set<PosixFilePermission> FILE_MODE = PosixFilePermissions.fromString("rw-------");
-    private static final Set<PosixFilePermission> DIR_MODE = PosixFilePermissions.fromString("rwx------");
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private static Path credentialsFile;
 
     private CredentialStore() {
     }
 
+    public static void configure(Configuration configuration) {
+        credentialsFile = configuration.getResolvedCredentials();
+    }
+
     public static Path path() {
-        return CommandLineUtil.getHomeDir().resolve(CONFIG_DIR).resolve(CREDENTIALS_FILE);
+        return credentialsFile;
     }
 
     /** Trailing slashes would otherwise produce two entries for one platform. */
@@ -97,11 +99,6 @@ public final class CredentialStore {
     private static void writeAll(Map<String, StoredCredential> credentials) {
         Path file = path();
         try {
-            Path directory = file.getParent();
-            if (!Files.exists(directory)) {
-                Files.createDirectories(directory);
-                trySetPermissions(directory, DIR_MODE);
-            }
             // Create the file before writing so the mode is narrowed while it is still empty —
             // creating it with the default umask and chmod-ing afterwards leaves a window where the
             // token is world-readable.

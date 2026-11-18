@@ -15,6 +15,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.ConfigurationManager;
+import io.debezium.jbang.core.auth.CredentialStore;
 import io.debezium.jbang.core.commands.SwitchCommand;
 import io.debezium.jbang.core.commands.auth.AuthCommand;
 import io.debezium.jbang.core.commands.auth.AuthLogin;
@@ -100,7 +101,7 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
         catch (Exception e) {
             // ignore
         }
-        configurationManager.load();
+        loadConfiguration();
 
         commandLine = new CommandLine(this, factory)
                 .addSubcommand("version", new CommandLine(new VersionCommand(this)))
@@ -173,7 +174,13 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
     }
 
     public Configuration configuration() {
-        return configurationManager.load();
+        return loadConfiguration();
+    }
+
+    private Configuration loadConfiguration() {
+        Configuration configuration = configurationManager.load();
+        CredentialStore.configure(configuration);
+        return configuration;
     }
 
     public void save(Configuration configuration) {
