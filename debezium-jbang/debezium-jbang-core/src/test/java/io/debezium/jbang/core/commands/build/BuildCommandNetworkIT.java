@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.debezium.jbang.configuration.Configuration;
+import io.debezium.jbang.core.DebeziumJBangMain;
 
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
@@ -36,7 +37,14 @@ class BuildCommandNetworkIT {
     }
 
     private BuildCommand silentCommand(String configPath) {
-        BuildCommand cmd = new BuildCommand(null) {
+        var main = new DebeziumJBangMain() {
+            @Override
+            public YAMLMapper getYamlMapper() {
+                return new YAMLMapper();
+            }
+        };
+
+        BuildCommand cmd = new BuildCommand(main) {
             @Override
             public void println(String line) {
             }
