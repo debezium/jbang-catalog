@@ -17,6 +17,7 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "init", description = "Scaffold a dbz.yaml project file for a source-sink combination", mixinStandardHelpOptions = true, sortOptions = false)
 public class InitCommand extends DebeziumCommand {
 
+    private final DbzConfigLoader dbzConfigLoader;
     @CommandLine.Option(names = { "--source" }, required = true, description = "Source connector type (e.g. postgres, mysql, mongodb, sqlserver, oracle)")
     String source;
 
@@ -31,6 +32,7 @@ public class InitCommand extends DebeziumCommand {
 
     public InitCommand(DebeziumJBangMain main) {
         super(main);
+        dbzConfigLoader = new DbzConfigLoader(getMain().getYamlMapper());
     }
 
     @Override
@@ -41,7 +43,7 @@ public class InitCommand extends DebeziumCommand {
             return 1;
         }
 
-        String template = DbzConfigLoader.loadTemplate(source.toLowerCase(), sink.toLowerCase());
+        String template = dbzConfigLoader.loadTemplate(source.toLowerCase(), sink.toLowerCase());
         if (template == null) {
             println("No template found for source '" + source + "' and sink '" + sink + "'.");
             println("Supported sources: postgres, mysql, mongodb, sqlserver, oracle");

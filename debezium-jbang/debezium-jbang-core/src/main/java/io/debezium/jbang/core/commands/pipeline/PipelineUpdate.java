@@ -7,9 +7,6 @@ package io.debezium.jbang.core.commands.pipeline;
 
 import java.io.File;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.PlatformFactory;
@@ -38,8 +35,7 @@ public class PipelineUpdate extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-        PipelineRequest request = yamlMapper.readValue(file, PipelineRequest.class);
+        PipelineRequest request = getMain().getYamlMapper().readValue(file, PipelineRequest.class);
 
         PlatformService platformService = platformFactory.pipeline(configuration());
         Pipeline updated = PipelineMapper.toDomain(platformService.updatePipeline(id, request));

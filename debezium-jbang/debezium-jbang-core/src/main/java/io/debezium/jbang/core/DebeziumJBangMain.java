@@ -10,10 +10,6 @@ import java.util.concurrent.Callable;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-
 import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.ConfigurationManager;
 import io.debezium.jbang.core.commands.SwitchCommand;
@@ -73,6 +69,8 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 import land.oras.Registry;
 import picocli.AutoComplete;
 import picocli.CommandLine;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @QuarkusMain
 @CommandLine.Command(name = "debezium", description = "Debezium CLI", mixinStandardHelpOptions = true)
@@ -86,11 +84,12 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
     @OrasRegistry("default")
     Instance<Registry> registry;
 
+    @Inject
+    ObjectMapper jsonMapper;
+
     private Printer out = new Printer.SystemOutPrinter();
 
-    private final ObjectMapper jsonMapper = new ObjectMapper();
-    private final ObjectMapper yamlMapper = new ObjectMapper(
-            new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
+    private final YAMLMapper yamlMapper = new YAMLMapper();
 
     private final ConfigurationManager configurationManager = new ConfigurationManager(yamlMapper,
             message -> out.println(message));
@@ -179,7 +178,7 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
         configurationManager.save(configuration);
     }
 
-    public ObjectMapper getYamlMapper() {
+    public YAMLMapper getYamlMapper() {
         return yamlMapper;
     }
 

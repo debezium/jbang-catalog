@@ -15,9 +15,9 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
+
+import tools.jackson.databind.ObjectMapper;
 
 class OciCatalogHandlerTest {
 

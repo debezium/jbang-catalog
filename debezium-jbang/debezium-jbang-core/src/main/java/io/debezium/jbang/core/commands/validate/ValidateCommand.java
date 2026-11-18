@@ -15,9 +15,11 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import io.debezium.jbang.connectors.ConnectorRegistry;
+import io.debezium.jbang.connectors.ConnectorsConfig;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.build.config.DbzConfig;
 import io.debezium.jbang.core.build.config.DbzConfigLoader;
+import io.debezium.jbang.core.build.config.EnvironmentVariableResolver;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
 import io.debezium.jbang.core.platform.catalog.dto.Property;
@@ -28,6 +30,7 @@ import io.debezium.jbang.inventory.oci.OrasArtifactDownloader;
 
 import land.oras.Registry;
 import picocli.CommandLine;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @CommandLine.Command(name = "validate", description = "Validate a dbz.yaml project file", mixinStandardHelpOptions = true, sortOptions = false)
 public class ValidateCommand extends DebeziumCommand {
@@ -35,13 +38,14 @@ public class ValidateCommand extends DebeziumCommand {
     private static final Set<String> KNOWN_SOURCES = Set.of("postgres", "mysql", "mongodb", "sqlserver", "oracle");
     private static final Set<String> KNOWN_SINKS = Set.of("kafka", "http", "pulsar", "redis");
 
-    private static final Map<String, String> SOURCE_TYPE_TO_CLASS = ConnectorRegistry.load();
+    private final ConnectorsConfig connectorsConfig;
 
     private final PropertyValidator validators = new CompositePropertyValidator(
             new RequiredFieldValidator(),
             new EnumValueValidator());
 
     private final OciCatalogLoader ociCatalogLoader;
+    private final DbzConfigLoader dbzConfigLoader;
 
     @CommandLine.Option(names = { "--config" }, description = "Path to dbz.yaml (default: ./dbz.yaml)", defaultValue = "dbz.yaml")
     String configPath;
@@ -55,6 +59,8 @@ public class ValidateCommand extends DebeziumCommand {
                 this::errPrintln,
                 getMain().getJsonMapper(),
                 new OrasArtifactDownloader(registry));
+        dbzConfigLoader = new DbzConfigLoader(getMain().getYamlMapper());
+        this.connectorsConfig = ConnectorRegistry.getInstance(new YAMLMapper());
     }
 
     @Override
@@ -68,7 +74,7 @@ public class ValidateCommand extends DebeziumCommand {
 
         DbzConfig config;
         try {
-            config = DbzConfigLoader.load(path);
+            config = dbzConfigLoader.load(path);
         }
         catch (Exception e) {
             println("ERROR: Failed to parse " + configPath + ": " + e.getMessage());
@@ -111,7 +117,8 @@ public class ValidateCommand extends DebeziumCommand {
             if (line.stripLeading().startsWith("#")) {
                 continue;
             }
-            Matcher matcher = DbzConfigLoader.getEnvVarPattern().matcher(line);
+            Matcher matcher = EnvironmentVariableResolver.matcher(line);
+
             while (matcher.find()) {
                 String varName = matcher.group(1);
                 if (System.getenv(varName) == null && reportedVars.add(varName)) {
@@ -122,7 +129,7 @@ public class ValidateCommand extends DebeziumCommand {
 
         // Catalog-based connector config validation (requires conductor to be running)
         String connectorClass = config.source() != null && config.source().type() != null
-                ? SOURCE_TYPE_TO_CLASS.get(config.source().type().toLowerCase())
+                ? connectorsConfig.getConnectorsNameByClass().get(config.source().type().toLowerCase())
                 : null;
         if (errors.isEmpty() && connectorClass != null) {
             try {

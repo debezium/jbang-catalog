@@ -7,8 +7,6 @@ package io.debezium.jbang.core.commands.catalog;
 
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.platform.catalog.Catalog;
@@ -61,7 +59,7 @@ public class CatalogList extends DebeziumCommand {
         return 0;
     }
 
-    private void print(Catalog catalog) throws JsonProcessingException {
+    private void print(Catalog catalog) {
         if ("json".equalsIgnoreCase(format)) {
             println(getMain().getJsonMapper().writeValueAsString(catalog));
             return;

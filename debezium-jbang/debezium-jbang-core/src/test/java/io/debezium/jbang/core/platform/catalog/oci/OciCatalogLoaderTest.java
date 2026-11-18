@@ -19,13 +19,13 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import io.debezium.jbang.configuration.Artifact;
 import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.Oci;
 import io.debezium.jbang.inventory.oci.OciArtifactDownloader;
+
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 class OciCatalogLoaderTest {
 
@@ -77,7 +77,7 @@ class OciCatalogLoaderTest {
 
     @Test
     void configDefaultsShipDescriptorCoordinates() throws IOException {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        ObjectMapper mapper = new YAMLMapper();
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("config-defaults.yaml")) {
             Configuration defaults = mapper.readValue(is, Configuration.class);
             Oci oci = defaults.getOci();

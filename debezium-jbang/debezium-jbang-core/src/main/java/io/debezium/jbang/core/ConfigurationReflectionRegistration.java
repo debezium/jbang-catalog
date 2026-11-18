@@ -6,6 +6,7 @@
 package io.debezium.jbang.core;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.vertx.core.json.jackson.v3.HybridJacksonPool;
 
 @RegisterForReflection(targets = {
         io.debezium.jbang.configuration.Configuration.class,
@@ -18,6 +19,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
         io.debezium.jbang.configuration.Oci.class,
         io.debezium.jbang.configuration.Registry.class,
         io.debezium.jbang.configuration.Artifact.class,
+        /* HybridJacksonPool shouldn't be initialized here */
+        HybridJacksonPool.class,
 })
 public class ConfigurationReflectionRegistration {
 }

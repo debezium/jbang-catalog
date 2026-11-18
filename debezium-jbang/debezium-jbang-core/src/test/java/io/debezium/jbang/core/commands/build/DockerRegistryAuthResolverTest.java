@@ -10,20 +10,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-class RegistryAuthResolverTest {
+import tools.jackson.databind.ObjectMapper;
+
+class DockerRegistryAuthResolverTest {
 
     @TempDir
     Path tempDir;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Test
     void returnsEmptyWhenDockerConfigAbsent() {
-        Optional<RegistryAuthResolver.RegistryAuth> result = RegistryAuthResolver.resolveFromDockerConfig(
-                null, tempDir.resolve("nonexistent.json"));
+        var result = new DockerRegistryAuthResolver(
+                tempDir.resolve("nonexistent.json"),
+                objectMapper).resolve(null);
+
         assertThat(result).isEmpty();
     }
 
@@ -41,7 +46,8 @@ class RegistryAuthResolverTest {
                 }
                 """.formatted(encoded));
 
-        Optional<RegistryAuthResolver.RegistryAuth> result = RegistryAuthResolver.resolveFromDockerConfig(null, config);
+        var result = new DockerRegistryAuthResolver(config, objectMapper).resolve(null);
+
         assertThat(result).isPresent();
         assertThat(result.get().username()).isEqualTo("myuser");
         assertThat(result.get().password()).isEqualTo("mypass");
@@ -61,7 +67,8 @@ class RegistryAuthResolverTest {
                 }
                 """.formatted(encoded));
 
-        Optional<RegistryAuthResolver.RegistryAuth> result = RegistryAuthResolver.resolveFromDockerConfig("ghcr.io", config);
+        var result = new DockerRegistryAuthResolver(config, objectMapper).resolve("ghcr.io");
+
         assertThat(result).isPresent();
         assertThat(result.get().username()).isEqualTo("ghuser");
         assertThat(result.get().password()).isEqualTo("ghtoken");
@@ -81,8 +88,8 @@ class RegistryAuthResolverTest {
                 }
                 """.formatted(encoded));
 
-        Optional<RegistryAuthResolver.RegistryAuth> result = RegistryAuthResolver.resolveFromDockerConfig(
-                "registry.example.com", config);
+        var result = new DockerRegistryAuthResolver(config, objectMapper).resolve("registry.example.com");
+
         assertThat(result).isEmpty();
     }
 
@@ -95,7 +102,8 @@ class RegistryAuthResolverTest {
                 }
                 """);
 
-        Optional<RegistryAuthResolver.RegistryAuth> result = RegistryAuthResolver.resolveFromDockerConfig(null, config);
+        var result = new DockerRegistryAuthResolver(config, objectMapper).resolve(null);
+
         assertThat(result).isEmpty();
     }
 
@@ -113,8 +121,8 @@ class RegistryAuthResolverTest {
                 }
                 """.formatted(encoded));
 
-        Optional<RegistryAuthResolver.RegistryAuth> result = RegistryAuthResolver.resolveFromDockerConfig(
-                "myregistry.example.com", config);
+        var result = new DockerRegistryAuthResolver(config, objectMapper).resolve("myregistry.example.com");
+
         assertThat(result).isPresent();
         assertThat(result.get().username()).isEqualTo("admin");
         assertThat(result.get().password()).isEqualTo("secret");

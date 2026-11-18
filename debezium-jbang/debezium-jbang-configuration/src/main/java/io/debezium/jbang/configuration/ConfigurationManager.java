@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public class ConfigurationManager {
 
@@ -21,10 +21,10 @@ public class ConfigurationManager {
     private static final String DEFAULTS_RESOURCE = "config-defaults.yaml";
     private static final String CONFIGURATION_NAME = "global configuration";
 
-    private final ObjectMapper objectMapper;
+    private final YAMLMapper objectMapper;
     private final Consumer<String> printer;
 
-    public ConfigurationManager(ObjectMapper objectMapper,
+    public ConfigurationManager(YAMLMapper objectMapper,
                                 Consumer<String> printer) {
         this.objectMapper = objectMapper;
         this.printer = printer;
@@ -68,12 +68,7 @@ public class ConfigurationManager {
         Configuration defaults = loadDefaults();
 
         if (Files.exists(configFile)) {
-            try {
-                return this.objectMapper.readerForUpdating(defaults).readValue(configFile.toFile());
-            }
-            catch (IOException exception) {
-                throw new RuntimeException("impossible to read the " + CONFIGURATION_NAME + " : " + exception.getMessage(), exception);
-            }
+            return this.objectMapper.readerForUpdating(defaults).readValue(configFile.toFile());
         }
 
         return defaults;

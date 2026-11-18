@@ -10,11 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.Oci;
 import io.debezium.jbang.inventory.oci.OciArtifactDownloader;
+
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Reads the component descriptor OCI artifact coordinates from configuration, downloads it into a local

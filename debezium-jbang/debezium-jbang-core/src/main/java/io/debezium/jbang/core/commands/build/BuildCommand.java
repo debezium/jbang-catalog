@@ -22,6 +22,7 @@ import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
 
 import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.connectors.ConnectorRegistry;
+import io.debezium.jbang.connectors.ConnectorsConfig;
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.build.config.DbzConfig;
 import io.debezium.jbang.core.build.config.DbzConfigLoader;
@@ -34,6 +35,8 @@ public class BuildCommand extends DebeziumCommand {
 
     private static final String DEFAULT_BASE_IMAGE = "eclipse-temurin:21-jre"; // fallback only if config loading fails
     private static final AbsoluteUnixPath APP_DIR = AbsoluteUnixPath.get("/app");
+    private final DbzConfigLoader dbzConfigLoader;
+    private final ConnectorsConfig connectorsConfig;
 
     @CommandLine.Option(names = { "--config" }, description = "Path to dbz.yaml (default: ./dbz.yaml)", defaultValue = "dbz.yaml")
     String configPath;
@@ -43,6 +46,8 @@ public class BuildCommand extends DebeziumCommand {
 
     public BuildCommand(DebeziumJBangMain main) {
         super(main);
+        dbzConfigLoader = new DbzConfigLoader(getMain().getYamlMapper());
+        this.connectorsConfig = ConnectorRegistry.getInstance(getMain().getYamlMapper());
     }
 
     @Override
@@ -55,7 +60,7 @@ public class BuildCommand extends DebeziumCommand {
 
         DbzConfig config;
         try {
-            config = DbzConfigLoader.load(path);
+            config = dbzConfigLoader.load(path);
         }
         catch (Exception e) {
             println("ERROR: Failed to parse " + configPath + ": " + e.getMessage());
@@ -76,7 +81,7 @@ public class BuildCommand extends DebeziumCommand {
 
         ConnectorRegistry.ConnectorEntry connector;
         try {
-            connector = ConnectorRegistry.getConnector(sourceType);
+            connector = connectorsConfig.getConnector(sourceType);
         }
         catch (IllegalArgumentException e) {
             println("ERROR: " + e.getMessage());
@@ -85,7 +90,7 @@ public class BuildCommand extends DebeziumCommand {
 
         ConnectorRegistry.SinkEntry sink;
         try {
-            sink = ConnectorRegistry.getSink(sinkType);
+            sink = connectorsConfig.getSink(sinkType);
         }
         catch (IllegalArgumentException e) {
             println("ERROR: " + e.getMessage());
@@ -102,7 +107,7 @@ public class BuildCommand extends DebeziumCommand {
         if (config.extras() != null) {
             for (String extra : config.extras()) {
                 try {
-                    activeProfiles.add(ConnectorRegistry.getExtra(extra).profile());
+                    activeProfiles.add(connectorsConfig.getExtra(extra).profile());
                 }
                 catch (IllegalArgumentException e) {
                     println("ERROR: " + e.getMessage());

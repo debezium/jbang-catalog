@@ -9,12 +9,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 class CatalogManifestTest {
 
     @Test
-    void shouldParseListBasedComponentsFormat() throws Exception {
+    void shouldParseListBasedComponentsFormat() {
         String json = """
                 {
                   "schemaVersion": 1,

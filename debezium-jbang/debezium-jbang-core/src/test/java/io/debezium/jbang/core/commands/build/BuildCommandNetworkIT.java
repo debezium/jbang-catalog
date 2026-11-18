@@ -18,10 +18,9 @@ import java.util.zip.ZipInputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import io.debezium.jbang.configuration.Configuration;
+
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 class BuildCommandNetworkIT {
 
@@ -29,7 +28,7 @@ class BuildCommandNetworkIT {
 
     private static Configuration loadDefaultConfiguration() {
         try (InputStream is = BuildCommandNetworkIT.class.getClassLoader().getResourceAsStream("config-defaults.yaml")) {
-            return new ObjectMapper(new YAMLFactory()).readValue(is, Configuration.class);
+            return new YAMLMapper().readValue(is, Configuration.class);
         }
         catch (Exception e) {
             throw new RuntimeException(e);

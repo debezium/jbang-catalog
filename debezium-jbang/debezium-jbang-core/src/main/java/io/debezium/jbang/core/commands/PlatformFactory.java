@@ -7,9 +7,6 @@ package io.debezium.jbang.core.commands;
 
 import java.net.URI;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.Platform;
 import io.debezium.jbang.core.platform.catalog.service.CatalogService;
@@ -26,6 +23,8 @@ import io.debezium.jbang.core.platform.transform.service.HttpTransformService;
 import io.debezium.jbang.core.platform.transform.service.TransformService;
 
 import picocli.CommandLine;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class PlatformFactory {
 
@@ -65,14 +64,14 @@ public class PlatformFactory {
         return platform != null && platform.hasEnvironments();
     }
 
-    public String getPlatformVersion(Configuration configuration) {
+    public String getPlatformVersion(Configuration configuration, ObjectMapper objectMapper) {
         if (!isPlatformConfigured(configuration)) {
             return null;
         }
         try {
             String catalogJson = catalog(configuration).getCatalog(null);
             if (catalogJson != null) {
-                JsonNode root = new ObjectMapper().readTree(catalogJson);
+                JsonNode root = objectMapper.readTree(catalogJson);
                 JsonNode build = root.path("build");
                 if (!build.isMissingNode()) {
                     String version = build.path("version").asText(null);
