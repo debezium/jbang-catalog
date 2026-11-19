@@ -20,6 +20,7 @@
 
         <quarkus-version>3.33.1.1</quarkus-version>
         <version.jandex>3.5.3</version.jandex>
+        <version.nimbus.oauth2.sdk>11.23</version.nimbus.oauth2.sdk>
     </properties>
 
     <dependencyManagement>

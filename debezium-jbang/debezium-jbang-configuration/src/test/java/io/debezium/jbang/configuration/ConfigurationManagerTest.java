@@ -11,6 +11,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +31,7 @@ class ConfigurationManagerTest {
 
     private String originalHome;
     private ConfigurationManager manager;
+    private List<String> messages;
 
     @BeforeEach
     void setUp() {
@@ -36,8 +40,8 @@ class ConfigurationManagerTest {
 
         ObjectMapper yamlMapper = new ObjectMapper(
                 new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
-        manager = new ConfigurationManager(yamlMapper, message -> {
-        });
+        messages = new ArrayList<>();
+        manager = new ConfigurationManager(yamlMapper, messages::add);
     }
 
     @AfterEach
@@ -66,6 +70,84 @@ class ConfigurationManagerTest {
         assertThat(config.getOci().getRegistry()).isEqualTo("quay.io");
         assertThat(config.getOci().getArtifact().getName()).isEqualTo("debezium/debezium-descriptors");
         assertThat(config.getOci().getArtifact().getTag()).isEqualTo("nightly");
+
+        assertThat(config.getAuthentication()).isNotNull();
+        assertThat(config.getAuthentication().getCredentials()).isEqualTo("~/.dbz/credentials.json");
+        assertThat(config.getResolvedCredentials()).isEqualTo(tempDir.resolve(".dbz/credentials.json"));
+    }
+
+    @Test
+    void shouldNotCreateTheCredentialsFileWhenLoading() {
+        manager.load();
+
+        assertThat(Files.exists(tempDir.resolve(".dbz/credentials.json"))).isFalse();
+    }
+
+    @Test
+    void shouldCreateAnOverriddenCredentialsDirectoryWhenLoading() throws IOException {
+        writeUserConfig("""
+                authentication:
+                  credentials: "~/.custom-dbz/auth/credentials.json"
+                """);
+
+        Configuration config = manager.load();
+
+        assertThat(config.getAuthentication().getCredentials()).isEqualTo("~/.custom-dbz/auth/credentials.json");
+        assertThat(config.getResolvedCredentials()).isEqualTo(tempDir.resolve(".custom-dbz/auth/credentials.json"));
+        Path credentialsDirectory = tempDir.resolve(".custom-dbz/auth");
+        assertThat(Files.isDirectory(credentialsDirectory)).isTrue();
+        assertThat(PosixFilePermissions.toString(Files.getPosixFilePermissions(credentialsDirectory))).isEqualTo("rwx------");
+    }
+
+    @Test
+    void shouldUseTheDefaultCredentialsPathForMissingOrBlankValues() throws IOException {
+        List<String> userConfigs = List.of(
+                "authentication:\n",
+                "authentication:\n  credentials:\n",
+                "authentication:\n  credentials: \"\"\n");
+
+        for (String userConfig : userConfigs) {
+            writeUserConfig(userConfig);
+
+            assertThat(manager.load().getResolvedCredentials()).isEqualTo(tempDir.resolve(".dbz/credentials.json"));
+        }
+    }
+
+    @Test
+    void shouldNotExpandTildeForAnotherUser() {
+        Authentication authentication = new Authentication();
+        authentication.setCredentials("~bob/credentials.json");
+        Configuration config = new Configuration();
+        config.setAuthentication(authentication);
+
+        assertThat(config.getResolvedCredentials()).isEqualTo(Path.of("~bob/credentials.json"));
+    }
+
+    @Test
+    void shouldWarnWhenTheCredentialsDirectoryCannotBeCreated() throws IOException {
+        Path blocked = tempDir.resolve("blocked");
+        Files.writeString(blocked, "not a directory");
+        Path credentials = blocked.resolve("auth/credentials.json");
+        writeUserConfig("authentication:\n  credentials: '" + credentials + "'\n");
+
+        Configuration config = manager.load();
+
+        assertThat(config.getResolvedCredentials()).isEqualTo(credentials);
+        assertThat(messages).anyMatch(message -> message.startsWith("Warning: cannot create credentials directory")
+                && message.contains(credentials.getParent().toString()));
+    }
+
+    @Test
+    void shouldWarnOnlyOnceWhenLoadingSeveralTimes() throws IOException {
+        Path blocked = tempDir.resolve("blocked");
+        Files.writeString(blocked, "not a directory");
+        writeUserConfig("authentication:\n  credentials: '" + blocked.resolve("auth/credentials.json") + "'\n");
+
+        manager.load();
+        manager.load();
+        manager.load();
+
+        assertThat(messages).filteredOn(message -> message.startsWith("Warning: cannot create credentials directory")).hasSize(1);
     }
 
     @Test

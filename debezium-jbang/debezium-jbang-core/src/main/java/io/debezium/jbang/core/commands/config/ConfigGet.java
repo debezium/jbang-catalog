@@ -66,6 +66,10 @@ public class ConfigGet extends DebeziumCommand {
             }
         }
 
+        println("");
+        println("Authentication:");
+        println("  credentials:          " + configuration().getResolvedCredentials());
+
         return 0;
     }
 }

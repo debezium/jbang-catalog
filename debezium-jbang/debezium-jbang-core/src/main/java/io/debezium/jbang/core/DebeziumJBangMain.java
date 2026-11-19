@@ -15,7 +15,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import io.debezium.jbang.configuration.Configuration;
 import io.debezium.jbang.configuration.ConfigurationManager;
+import io.debezium.jbang.core.auth.CredentialStore;
 import io.debezium.jbang.core.commands.SwitchCommand;
+import io.debezium.jbang.core.commands.auth.AuthCommand;
+import io.debezium.jbang.core.commands.auth.AuthLogin;
+import io.debezium.jbang.core.commands.auth.AuthLogout;
+import io.debezium.jbang.core.commands.auth.AuthStatus;
 import io.debezium.jbang.core.commands.build.BuildCommand;
 import io.debezium.jbang.core.commands.build.PushCommand;
 import io.debezium.jbang.core.commands.catalog.CatalogCommand;
@@ -96,7 +101,7 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
         catch (Exception e) {
             // ignore
         }
-        configurationManager.load();
+        loadConfiguration();
 
         commandLine = new CommandLine(this, factory)
                 .addSubcommand("version", new CommandLine(new VersionCommand(this)))
@@ -104,6 +109,10 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
                 .addSubcommand("config", new CommandLine(new ConfigCommand(this))
                         .addSubcommand("get", new CommandLine(new ConfigGet(this)))
                         .addSubcommand("set", new CommandLine(new ConfigSet(this))))
+                .addSubcommand("auth", new CommandLine(new AuthCommand(this))
+                        .addSubcommand("login", new CommandLine(new AuthLogin(this)))
+                        .addSubcommand("status", new CommandLine(new AuthStatus(this)))
+                        .addSubcommand("logout", new CommandLine(new AuthLogout(this))))
                 .addSubcommand("pipeline", new CommandLine(new PipelineCommand(this))
                         .addSubcommand("list", new CommandLine(new PipelineList(this)))
                         .addSubcommand("get", new CommandLine(new PipelineGet(this)))
@@ -165,7 +174,13 @@ public class DebeziumJBangMain implements Callable<Integer>, QuarkusApplication 
     }
 
     public Configuration configuration() {
-        return configurationManager.load();
+        return loadConfiguration();
+    }
+
+    private Configuration loadConfiguration() {
+        Configuration configuration = configurationManager.load();
+        CredentialStore.configure(configuration);
+        return configuration;
     }
 
     public void save(Configuration configuration) {
