@@ -7,9 +7,6 @@ package io.debezium.jbang.core.commands.connection;
 
 import java.io.File;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.PlatformFactory;
@@ -38,8 +35,7 @@ public class ConnectionUpdate extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-        ConnectionRequest request = yamlMapper.readValue(file, ConnectionRequest.class);
+        ConnectionRequest request = getMain().getYamlMapper().readValue(file, ConnectionRequest.class);
 
         ConnectionService connectionService = platformFactory.connection(configuration());
         Connection updated = ConnectionMapper.toDomain(connectionService.updateConnection(id, request));

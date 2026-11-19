@@ -10,49 +10,26 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.debezium.jbang.core.commands.version.Version;
 
+import tools.jackson.dataformat.yaml.YAMLMapper;
+
 public class DbzConfigLoader {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
-    private static final Pattern ENV_VAR_PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
+    private final YAMLMapper yamlMapper;
 
-    private DbzConfigLoader() {
+    public DbzConfigLoader(YAMLMapper yamlMapper) {
+        this.yamlMapper = yamlMapper;
     }
 
-    public static DbzConfig load(Path path) throws IOException {
+    public DbzConfig load(Path path) throws IOException {
         String content = Files.readString(path);
-        String resolved = resolveEnvVars(content);
-        return MAPPER.readValue(resolved, DbzConfig.class);
+        String resolved = EnvironmentVariableResolver.resolve(content);
+        return yamlMapper.readValue(resolved, DbzConfig.class);
     }
 
-    public static DbzConfig loadFromCurrentDir() throws IOException {
-        return load(Path.of("dbz.yaml"));
-    }
-
-    public static Pattern getEnvVarPattern() {
-        return ENV_VAR_PATTERN;
-    }
-
-    public static String resolveEnvVars(String content) {
-        Matcher matcher = ENV_VAR_PATTERN.matcher(content);
-        StringBuilder sb = new StringBuilder();
-        while (matcher.find()) {
-            String varName = matcher.group(1);
-            String value = System.getenv(varName);
-            matcher.appendReplacement(sb, Matcher.quoteReplacement(value != null ? value : matcher.group(0)));
-        }
-        matcher.appendTail(sb);
-        return sb.toString();
-    }
-
-    public static String loadTemplate(String source, String sink) {
+    public String loadTemplate(String source, String sink) {
         String cliVersion = Version.getCoreVersion();
         String templateName = source + "-" + sink + ".yaml";
         try (InputStream is = DbzConfigLoader.class.getResourceAsStream("/templates/init/" + templateName)) {

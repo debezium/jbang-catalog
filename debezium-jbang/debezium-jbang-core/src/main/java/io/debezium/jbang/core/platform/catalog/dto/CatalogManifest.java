@@ -5,6 +5,7 @@
  */
 package io.debezium.jbang.core.platform.catalog.dto;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -15,5 +16,12 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CatalogManifest(
-        @JsonProperty("components") Map<String, Map<String, Object>> components) {
+        @JsonProperty("schemaVersion") String schemaVersion,
+        @JsonProperty("build") Build build,
+        @JsonProperty("components") Map<String, List<Component>> components) {
+
+    @RegisterForReflection
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Build(@JsonProperty("version") String version) {
+    }
 }

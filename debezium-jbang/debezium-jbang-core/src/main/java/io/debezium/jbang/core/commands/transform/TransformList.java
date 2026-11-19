@@ -28,7 +28,9 @@ public class TransformList extends DebeziumCommand {
 
     @Override
     public Integer doCall() {
+        println("instantiate http client");
         TransformService transformService = platformFactory.transform(configuration());
+        println("completed");
         List<Transform> transforms = TransformMapper.toDomain(transformService.listTransforms());
 
         if (transforms.isEmpty()) {

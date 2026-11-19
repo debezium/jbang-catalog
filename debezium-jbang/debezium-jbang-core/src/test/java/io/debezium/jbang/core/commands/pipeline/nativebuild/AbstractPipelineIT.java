@@ -15,9 +15,9 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.debezium.jbang.test.suite.NativeTestPicoCliCommand;
+
+import tools.jackson.databind.ObjectMapper;
 
 abstract class AbstractPipelineIT extends NativeTestPicoCliCommand {
 

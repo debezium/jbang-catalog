@@ -15,7 +15,7 @@ class CatalogGetIT extends AbstractCatalogIT {
     @Test
     @DisplayName("should get component descriptor as JSON")
     void shouldGetComponentDescriptor() {
-        String output = executeCatalog("get source io.debezium.connector.postgresql.PostgresConnector");
+        String output = executeCatalog("get source-connector io.debezium.connector.postgresql.PostgresConnector");
 
         assertThat(output.trim()).isNotEmpty();
     }

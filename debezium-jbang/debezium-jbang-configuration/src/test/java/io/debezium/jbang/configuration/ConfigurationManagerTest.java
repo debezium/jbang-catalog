@@ -17,9 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 class ConfigurationManagerTest {
 
@@ -34,8 +32,7 @@ class ConfigurationManagerTest {
         originalHome = System.getProperty("user.home");
         System.setProperty("user.home", tempDir.toString());
 
-        ObjectMapper yamlMapper = new ObjectMapper(
-                new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
+        var yamlMapper = new YAMLMapper();
         manager = new ConfigurationManager(yamlMapper, message -> {
         });
     }
