@@ -19,12 +19,15 @@ import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.build.config.DbzConfig;
 import io.debezium.jbang.core.build.config.DbzConfigLoader;
 import io.debezium.jbang.core.commands.DebeziumCommand;
-import io.debezium.jbang.core.commands.build.RegistryAuthResolver.RegistryAuth;
 
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "push", description = "Push the assembled OCI image to a container registry", mixinStandardHelpOptions = true, sortOptions = false)
 public class PushCommand extends DebeziumCommand {
+
+    private final DefaultRegistryAuthResolver defaultRegistryAuthResolver = new DefaultRegistryAuthResolver(configuration(),
+            new DockerRegistryAuthResolver(Path.of(System.getProperty("user.home"), ".docker", "config.json"), getMain().getJsonMapper()));
+    private final DbzConfigLoader dbzConfigLoader;
 
     @CommandLine.Option(names = { "--config" }, description = "Path to dbz.yaml (default: ./dbz.yaml)", defaultValue = "dbz.yaml")
     String configPath;
@@ -37,6 +40,7 @@ public class PushCommand extends DebeziumCommand {
 
     public PushCommand(DebeziumJBangMain main) {
         super(main);
+        dbzConfigLoader = new DbzConfigLoader(getMain().getYamlMapper());
     }
 
     @Override
@@ -49,7 +53,7 @@ public class PushCommand extends DebeziumCommand {
 
         DbzConfig config;
         try {
-            config = DbzConfigLoader.load(path);
+            config = dbzConfigLoader.load(path);
         }
         catch (Exception e) {
             println("ERROR: Failed to parse " + configPath + ": " + e.getMessage());
@@ -67,7 +71,7 @@ public class PushCommand extends DebeziumCommand {
 
         println("Pushing " + resolved.name() + ":" + resolved.tag() + " → " + (resolved.registry() != null ? resolved.registry() : "Docker Hub") + "...");
 
-        Optional<RegistryAuth> auth = RegistryAuthResolver.resolve(resolved.registry(), configuration());
+        Optional<RegistryAuth> auth = defaultRegistryAuthResolver.resolve(resolved.registry());
         if (auth.isEmpty()) {
             println("No credentials found — attempting anonymous push...");
             println("  (If this fails, set DBZ_REGISTRY_USERNAME/DBZ_REGISTRY_PASSWORD or run 'docker login')");

@@ -8,8 +8,8 @@
 
 //JAVA 21+
 //REPOS central=https://repo1.maven.org/maven2,apache-snapshot=https://repository.apache.org/content/groups/snapshots/
-//JAVA_OPTIONS -Ddebezium.jbang.quarkusVersion=3.33.1.1 --add-opens java.base/java.lang=ALL-UNNAMED
-//DEPS io.quarkus.platform:quarkus-bom:3.33.1.1@pom
+//JAVA_OPTIONS -Ddebezium.jbang.quarkusVersion=4.0.0.CR1 --add-opens java.base/java.lang=ALL-UNNAMED
+//DEPS io.quarkus.platform:quarkus-bom:4.0.0.CR1@pom
 //JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
 //DEPS org.jboss.slf4j:slf4j-jboss-logmanager:2.0.2.Final
 //DEPS io.debezium:debezium-bom:${debezium.jbang.version:3.8.0-SNAPSHOT}@pom
@@ -20,7 +20,9 @@
 //Q:CONFIG quarkus.banner.enabled=false
 //Q:CONFIG quarkus.log.level=WARN
 //Q:CONFIG quarkus.index-dependency.core.group-id=io.debezium.jbang
+//Q:CONFIG quarkus.index-dependency.oras.group-id=io.quarkiverse.oras
 //Q:CONFIG quarkus.index-dependency.core.artifact-id=debezium-jbang-core
+//Q:CONFIG quarkus.index-dependency.oras.artifact-id=quarkus-oras
 
 package main;
 

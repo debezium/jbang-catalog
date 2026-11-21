@@ -23,7 +23,7 @@ class CatalogListIT extends AbstractCatalogIT {
     @Test
     @DisplayName("should list catalog components filtered by type as JSON")
     void shouldListCatalogByType() {
-        String output = executeCatalog("list --type source");
+        String output = executeCatalog("list --type source-connector");
 
         assertThat(output.trim()).isNotEmpty();
     }

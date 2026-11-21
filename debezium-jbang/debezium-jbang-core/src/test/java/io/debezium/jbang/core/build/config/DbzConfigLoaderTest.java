@@ -15,10 +15,15 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import tools.jackson.dataformat.yaml.JacksonYAMLParseException;
+import tools.jackson.dataformat.yaml.YAMLMapper;
+
 class DbzConfigLoaderTest {
 
     @TempDir
     Path tempDir;
+
+    private final DbzConfigLoader underTest = new DbzConfigLoader(new YAMLMapper());
 
     @Test
     void shouldParseValidConfig() throws IOException {
@@ -41,7 +46,7 @@ class DbzConfigLoaderTest {
                     registry: ghcr.io/myorg
                 """);
 
-        DbzConfig config = DbzConfigLoader.load(file);
+        DbzConfig config = underTest.load(file);
 
         assertThat(config.version()).isEqualTo("1.0");
         assertThat(config.name()).isEqualTo("my-pipeline");
@@ -51,15 +56,6 @@ class DbzConfigLoaderTest {
         assertThat(config.build().image().name()).isEqualTo("debezium-server");
         assertThat(config.build().image().tag()).isEqualTo("latest");
         assertThat(config.build().image().registry()).isEqualTo("ghcr.io/myorg");
-    }
-
-    @Test
-    void shouldResolveEnvVars() {
-        String input = "user: ${HOME}\npassword: ${UNDEFINED_VAR_XYZ}";
-        String resolved = DbzConfigLoader.resolveEnvVars(input);
-
-        assertThat(resolved).contains("user: " + System.getenv("HOME"));
-        assertThat(resolved).contains("password: ${UNDEFINED_VAR_XYZ}");
     }
 
     @Test
@@ -74,7 +70,7 @@ class DbzConfigLoaderTest {
                   type: kafka
                 """);
 
-        DbzConfig config = DbzConfigLoader.load(file);
+        DbzConfig config = underTest.load(file);
 
         assertThat(config.source().config()).isNull();
         assertThat(config.sink().config()).isNull();
@@ -86,13 +82,13 @@ class DbzConfigLoaderTest {
         Path file = tempDir.resolve("bad.yaml");
         assertThatThrownBy(() -> {
             Files.writeString(file, "not: valid: yaml: [[[");
-            DbzConfigLoader.load(file);
-        }).isInstanceOf(IOException.class);
+            underTest.load(file);
+        }).isInstanceOf(JacksonYAMLParseException.class);
     }
 
     @Test
     void shouldLoadPostgresKafkaTemplate() {
-        String template = DbzConfigLoader.loadTemplate("postgres", "kafka");
+        String template = underTest.loadTemplate("postgres", "kafka");
         assertThat(template).isNotNull();
         assertThat(template).contains("type: postgres");
         assertThat(template).contains("type: kafka");
@@ -100,21 +96,21 @@ class DbzConfigLoaderTest {
 
     @Test
     void shouldLoadMysqlKafkaTemplate() {
-        String template = DbzConfigLoader.loadTemplate("mysql", "kafka");
+        String template = underTest.loadTemplate("mysql", "kafka");
         assertThat(template).isNotNull();
         assertThat(template).contains("type: mysql");
     }
 
     @Test
     void shouldLoadMongodbKafkaTemplate() {
-        String template = DbzConfigLoader.loadTemplate("mongodb", "kafka");
+        String template = underTest.loadTemplate("mongodb", "kafka");
         assertThat(template).isNotNull();
         assertThat(template).contains("type: mongodb");
     }
 
     @Test
     void shouldFallBackToGenericTemplateForUnknownCombination() {
-        String template = DbzConfigLoader.loadTemplate("sqlserver", "http");
+        String template = underTest.loadTemplate("sqlserver", "http");
         assertThat(template).isNotNull();
         assertThat(template).contains("sqlserver");
         assertThat(template).contains("http");

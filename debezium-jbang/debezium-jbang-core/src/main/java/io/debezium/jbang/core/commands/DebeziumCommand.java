@@ -37,6 +37,17 @@ public abstract class DebeziumCommand implements Callable<Integer>, Printer {
         }
     }
 
+    public void errPrintln(String line) {
+        if (spec != null && spec.commandLine() != null) {
+            spec.commandLine().getErr().println(line);
+        }
+        else {
+            // CHECKSTYLE:OFF
+            System.err.println(line);
+            // CHECKSTYLE:ON
+        }
+    }
+
     @Override
     public void println() {
         getMain().getOut().println();

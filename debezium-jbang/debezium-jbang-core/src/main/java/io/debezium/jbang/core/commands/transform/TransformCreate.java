@@ -7,9 +7,6 @@ package io.debezium.jbang.core.commands.transform;
 
 import java.io.File;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.PlatformFactory;
@@ -35,8 +32,7 @@ public class TransformCreate extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-        TransformRequest request = yamlMapper.readValue(file, TransformRequest.class);
+        TransformRequest request = getMain().getYamlMapper().readValue(file, TransformRequest.class);
 
         TransformService transformService = platformFactory.transform(configuration());
         Transform created = TransformMapper.toDomain(transformService.createTransform(request));

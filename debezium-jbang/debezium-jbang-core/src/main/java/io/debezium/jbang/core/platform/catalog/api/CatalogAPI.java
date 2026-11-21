@@ -12,6 +12,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
+import io.debezium.jbang.core.platform.catalog.dto.ComponentDescriptor;
+
 @Path("/api/catalog")
 public interface CatalogAPI {
 
@@ -22,5 +24,5 @@ public interface CatalogAPI {
     @GET
     @Path("/{type}/{class}")
     @Produces(MediaType.APPLICATION_JSON)
-    String getComponentDescriptor(@PathParam("type") String type, @PathParam("class") String componentClass);
+    ComponentDescriptor getComponentDescriptor(@PathParam("type") String type, @PathParam("class") String componentClass);
 }

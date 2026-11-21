@@ -7,9 +7,6 @@ package io.debezium.jbang.core.commands.source;
 
 import java.io.File;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import io.debezium.jbang.core.DebeziumJBangMain;
 import io.debezium.jbang.core.commands.DebeziumCommand;
 import io.debezium.jbang.core.commands.PlatformFactory;
@@ -35,8 +32,7 @@ public class SourceCreate extends DebeziumCommand {
 
     @Override
     public Integer doCall() throws Exception {
-        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-        SourceRequest request = yamlMapper.readValue(file, SourceRequest.class);
+        SourceRequest request = getMain().getYamlMapper().readValue(file, SourceRequest.class);
 
         SourceService sourceService = platformFactory.source(configuration());
         Source created = SourceMapper.toDomain(sourceService.createSource(request));

@@ -15,7 +15,7 @@ class CatalogGetJB extends AbstractCatalogJB {
     @Test
     @DisplayName("should get component descriptor properties as table")
     void shouldGetComponentDescriptor() {
-        String output = executeCatalog("get source io.debezium.connector.postgresql.PostgresConnector");
+        String output = executeCatalog("get source-connector io.debezium.connector.postgresql.PostgresConnector");
 
         assertThat(output).contains("NAME").contains("TYPE").contains("REQUIRED").contains("database.hostname");
     }
@@ -23,7 +23,7 @@ class CatalogGetJB extends AbstractCatalogJB {
     @Test
     @DisplayName("should get component descriptor as json when --format=json")
     void shouldGetComponentDescriptorAsJson() {
-        String output = executeCatalog("get source io.debezium.connector.postgresql.PostgresConnector --format=json");
+        String output = executeCatalog("get source-connector io.debezium.connector.postgresql.PostgresConnector --format=json");
 
         assertThat(output.trim()).startsWith("{");
     }
