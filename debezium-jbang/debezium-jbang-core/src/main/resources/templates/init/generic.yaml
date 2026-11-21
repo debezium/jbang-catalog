@@ -11,6 +11,8 @@ source:
   config:
     # Add your source connector configuration here
     database.hostname: localhost
+    # All change events will be published under this topic prefix
+    topic.prefix: cdc
 
 sink:
   type: {sink_type}

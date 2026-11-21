@@ -119,4 +119,36 @@ class DbzConfigLoaderTest {
         assertThat(template).contains("sqlserver");
         assertThat(template).contains("http");
     }
+
+    @Test
+    void shouldPlaceTopicPrefixUnderSourceInPostgresKafkaTemplate() throws IOException {
+        assertTopicPrefixOnSourceOnly("postgres", "kafka");
+    }
+
+    @Test
+    void shouldPlaceTopicPrefixUnderSourceInMysqlKafkaTemplate() throws IOException {
+        assertTopicPrefixOnSourceOnly("mysql", "kafka");
+    }
+
+    @Test
+    void shouldPlaceTopicPrefixUnderSourceInMongodbKafkaTemplate() throws IOException {
+        assertTopicPrefixOnSourceOnly("mongodb", "kafka");
+    }
+
+    @Test
+    void shouldPlaceTopicPrefixUnderSourceInGenericTemplate() throws IOException {
+        assertTopicPrefixOnSourceOnly("sqlserver", "http");
+    }
+
+    private void assertTopicPrefixOnSourceOnly(String source, String sink) throws IOException {
+        Path file = tempDir.resolve(source + "-" + sink + ".yaml");
+        Files.writeString(file, DbzConfigLoader.loadTemplate(source, sink));
+
+        DbzConfig config = DbzConfigLoader.load(file);
+
+        assertThat(config.source().config()).containsEntry("topic.prefix", "cdc");
+        if (config.sink().config() != null) {
+            assertThat(config.sink().config()).doesNotContainKey("topic.prefix");
+        }
+    }
 }

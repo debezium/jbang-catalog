@@ -23,6 +23,8 @@ source:
     slot.name: debezium
     # Publication name created on the PostgreSQL server
     publication.name: dbz_publication
+    # All change events will be published under this topic prefix
+    topic.prefix: cdc
 
 sink:
   # Sink type — do not change
@@ -30,8 +32,6 @@ sink:
   config:
     # Kafka bootstrap servers (comma-separated for multiple brokers)
     producer.bootstrap.servers: localhost:9092
-    # All change events will be published under this topic prefix
-    topic.prefix: cdc
 
 build:
   image:
