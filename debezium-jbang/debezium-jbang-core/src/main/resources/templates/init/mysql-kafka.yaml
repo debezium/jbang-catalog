@@ -22,6 +22,8 @@ source:
     database.include.list: mydb
     # Comma-separated list of tables to capture (db.table format)
     table.include.list: mydb.orders
+    # All change events will be published under this topic prefix
+    topic.prefix: cdc
 
 sink:
   # Sink type — do not change
@@ -29,8 +31,6 @@ sink:
   config:
     # Kafka bootstrap servers (comma-separated for multiple brokers)
     producer.bootstrap.servers: localhost:9092
-    # All change events will be published under this topic prefix
-    topic.prefix: cdc
 
 build:
   image:
