@@ -8,6 +8,7 @@ package io.debezium.jbang.core.platform.destination.service;
 import java.net.URI;
 import java.util.List;
 
+import io.debezium.jbang.core.auth.BearerTokenFilter;
 import io.debezium.jbang.core.platform.destination.api.DestinationAPI;
 import io.debezium.jbang.core.platform.destination.dto.DestinationRequest;
 import io.debezium.jbang.core.platform.destination.dto.DestinationResponse;
@@ -22,6 +23,7 @@ public class HttpDestinationService implements DestinationService {
         this.destinationAPI = QuarkusRestClientBuilder.newBuilder()
                 .baseUri(platformAddress)
                 .httpClientOptions(new HttpClientOptions())
+                .register(new BearerTokenFilter(platformAddress.toString()))
                 .build(DestinationAPI.class);
     }
 

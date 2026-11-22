@@ -18,6 +18,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
         io.debezium.jbang.configuration.Oci.class,
         io.debezium.jbang.configuration.Registry.class,
         io.debezium.jbang.configuration.Artifact.class,
+        io.debezium.jbang.configuration.Authentication.class,
 })
 public class ConfigurationReflectionRegistration {
 }

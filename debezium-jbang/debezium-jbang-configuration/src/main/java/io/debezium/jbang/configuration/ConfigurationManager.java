@@ -10,6 +10,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,9 +23,13 @@ public class ConfigurationManager {
     private static final String CONFIG_FILE = "config.yaml";
     private static final String DEFAULTS_RESOURCE = "config-defaults.yaml";
     private static final String CONFIGURATION_NAME = "global configuration";
+    private static final Set<PosixFilePermission> DIR_MODE = PosixFilePermissions.fromString("rwx------");
 
     private final ObjectMapper objectMapper;
     private final Consumer<String> printer;
+
+    // load() runs for every configuration read, so the warning would otherwise repeat.
+    private boolean credentialsDirectoryWarned;
 
     public ConfigurationManager(ObjectMapper objectMapper,
                                 Consumer<String> printer) {
@@ -47,11 +54,35 @@ public class ConfigurationManager {
 
     public Configuration load() {
         try {
-            return get();
+            Configuration configuration = get();
+            Path credentialsDirectory = configuration.getResolvedCredentials().getParent();
+            if (credentialsDirectory != null && !Files.exists(credentialsDirectory)) {
+                try {
+                    Files.createDirectories(credentialsDirectory);
+                }
+                catch (IOException e) {
+                    if (!credentialsDirectoryWarned) {
+                        credentialsDirectoryWarned = true;
+                        this.printer.accept("Warning: cannot create credentials directory " + credentialsDirectory + ": " + e.getMessage());
+                    }
+                    return configuration;
+                }
+                trySetPermissions(credentialsDirectory);
+            }
+            return configuration;
         }
         catch (Exception e) {
             this.printer.accept(e.getMessage());
             throw e;
+        }
+    }
+
+    private static void trySetPermissions(Path directory) {
+        try {
+            Files.setPosixFilePermissions(directory, DIR_MODE);
+        }
+        catch (IOException | UnsupportedOperationException e) {
+            // POSIX permissions do not exist on every filesystem.
         }
     }
 
