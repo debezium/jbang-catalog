@@ -1,7 +1,7 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS io.quarkus.platform:quarkus-bom:3.28.4@pom
 //DEPS io.quarkus:quarkus-arc
-//DEPS io.debezium.quarkus:debezium-quarkus-mongodb:3.7.0.Final
+//DEPS io.debezium.quarkus:debezium-quarkus-mongodb:3.7.1.Final
 //DEPS org.apache.kafka:kafka-clients:4.2.0
 //FILES application.properties
 //JAVAC_OPTIONS -parameters
